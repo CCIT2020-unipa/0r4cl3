@@ -315,3 +315,4 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,python,node
 
 *.db
+test_captures/

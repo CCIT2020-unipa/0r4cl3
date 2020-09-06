@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "webpack --config ./config/webpack.config.js --mode development --watch & ./venv/bin/python3 app.py",
+    "dev": "webpack --config ./config/webpack.config.js --mode development --watch & ./venv/bin/python3 -m src.main",
     "prod": "webpack --config ./config/webpack.config.js --mode production"
   },
   "devDependencies": {

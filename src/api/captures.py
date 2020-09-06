@@ -10,27 +10,20 @@ captures = Blueprint('captures', __name__)
 @captures.route('/captures')
 def _captures():
   # Parse query string parameters
-  limit = request.args.get('limit', None)
+  after_timestamp = request.args.get('after', 0)
 
   with sqlite3.connect(DB_PATH) as db_connection:
     # Fetch values as dictionaries rather than tuples
     db_connection.row_factory = sqlite_utils.dict_factory
-    db_cursor = db_connection.cursor()
 
-    # Limit number of results
-    if limit is not None:
-      db_cursor.execute('''
-        SELECT rowid, start_time, end_time, protocol, src_ip, src_port, dst_ip, dst_port
-        FROM Captures
-        ORDER BY start_time DESC
-        LIMIT ?
-      ''', (limit,))
-    else:
-      db_cursor.execute('''
-        SELECT rowid, start_time, end_time, protocol, src_ip, src_port, dst_ip, dst_port
-        FROM Captures
-        ORDER BY start_time DESC
-      ''')
+    # Fetch packets captured after the given timestamp
+    db_cursor = db_connection.cursor()
+    db_cursor.execute('''
+      SELECT rowid, start_time, end_time, protocol, src_ip, src_port, dst_ip, dst_port
+      FROM Captures
+      WHERE start_time > ?
+      ORDER BY start_time DESC
+    ''', (after_timestamp,))
 
     # Return the captured data as JSON
     return jsonify(db_cursor.fetchall())

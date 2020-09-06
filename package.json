@@ -1,0 +1,30 @@
+{
+  "name": "0r4cl3",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack --config ./config/webpack.config.js --mode development --watch & ./venv/bin/python3 app.py",
+    "prod": "webpack --config ./config/webpack.config.js --mode production"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/preset-react": "^7.9.4",
+    "@types/react": "^16.9.49",
+    "@types/react-dom": "^16.9.8",
+    "awesome-typescript-loader": "^5.2.1",
+    "babel-loader": "^8.1.0",
+    "css-loader": "^3.5.3",
+    "file-loader": "^6.0.0",
+    "source-map-loader": "^1.1.0",
+    "style-loader": "^1.2.1",
+    "typescript": "^4.0.2",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  }
+}

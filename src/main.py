@@ -11,8 +11,9 @@ DB_PATH = './captures.db'
 app = Flask(__name__, static_folder=STATIC_FOLDER_PATH)
 app.register_blueprint(captures, url_prefix='/api')
 
-@app.route('/')
-def _index():
+@app.route('/', defaults={ 'path': '' })
+@app.route('/<path:path>')
+def _index(path):
   return render_template('index.html')
 
 

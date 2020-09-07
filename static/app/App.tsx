@@ -6,7 +6,7 @@ import './App.css'
 
 import { PacketList } from './components/PacketList'
 
-const RESIZE_DETECTOR_REFRESH_RATE_MS = 2000
+const RESIZE_DETECTOR_REFRESH_RATE_MS = 1250
 
 export class App extends React.Component<{}, IState> {
   state = {
@@ -37,12 +37,15 @@ export class App extends React.Component<{}, IState> {
   }
 
   private updateTableHeight = (): void => {
-    // Remove top and bottom margin
     // TODO: use react refs
     const appContentElement = document.getElementById('App-content')
 
     if (appContentElement) {
-      const newTableHeight = appContentElement.clientHeight - 48
+      const newTableHeight = appContentElement.clientHeight
+        - 48 // Top and bottom 'App-content' margins
+        - 24 // Pagination height
+        - 32 // Top and bottom pagination margins
+
       this.setState((_, __) => ({ tableHeight: newTableHeight }))
     }
   }

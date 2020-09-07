@@ -56,8 +56,10 @@ export class PacketList extends React.Component<IProps, IState> {
         columns={TABLE_COLUMNS}
         pagination={{
           total: packets.length,
-          pageSize: packets.length,
-          hideOnSinglePage: true
+          defaultPageSize: 128,
+          pageSizeOptions: ['16', '32', '64', '128', '256', '512'],
+          position: ['topRight'],
+          size: 'small'
         }}
         scroll={{ y: tableHeight }}
         size='small'

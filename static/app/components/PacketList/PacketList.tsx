@@ -12,8 +12,7 @@ const TABLE_COLUMNS: ColumnsType<IPacket> = [
   {
     width: '5%',
     title: 'No.',
-    dataIndex: 'rowid',
-    key: 'rowid'
+    dataIndex: 'rowid'
   },
   {
     width: '10%',
@@ -24,7 +23,13 @@ const TABLE_COLUMNS: ColumnsType<IPacket> = [
     width: '5%',
     title: 'Protocol',
     dataIndex: 'protocol',
-    key: 'protocol'
+    ellipsis: true
+  },
+  {
+    width: '5%',
+    title: 'Length',
+    dataIndex: 'data_length',
+    ellipsis: true
   },
   {
     title: 'Hosts',

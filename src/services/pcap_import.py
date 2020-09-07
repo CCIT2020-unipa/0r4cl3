@@ -25,6 +25,7 @@ def import_pcap(file_path: str, db_path: str) -> int:
       src_port INTEGER NOT NULL,
       dst_ip TEXT NOT NULL,
       dst_port INTEGER NOT NULL,
+      data_length INTEGER NOT NULL,
       data_bytes BLOB NOT NULL,
       data_hex TEXT NOT NULL
     )
@@ -61,7 +62,7 @@ def import_pcap(file_path: str, db_path: str) -> int:
         flow_data_hex += data.hex()
 
     # Register the extracted data
-    db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+    db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
       start_time,
       end_time,
       protocol,
@@ -69,6 +70,7 @@ def import_pcap(file_path: str, db_path: str) -> int:
       src_port,
       dst_ip,
       dst_port,
+      len(flow_data_bytes),
       flow_data_bytes,
       flow_data_hex
     ))

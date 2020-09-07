@@ -39,9 +39,12 @@ export class App extends React.Component<{}, IState> {
   private updateTableHeight = (): void => {
     // Remove top and bottom margin
     // TODO: use react refs
-    const newTableHeight = document.getElementById('App-content').clientHeight - 48
+    const appContentElement = document.getElementById('App-content')
 
-    this.setState((_, __) => ({ tableHeight: newTableHeight }))
+    if (appContentElement) {
+      const newTableHeight = appContentElement.clientHeight - 48
+      this.setState((_, __) => ({ tableHeight: newTableHeight }))
+    }
   }
 }
 

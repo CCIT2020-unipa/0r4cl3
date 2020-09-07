@@ -33,7 +33,7 @@ const TABLE_COLUMNS: ColumnsType<IPacket> = [
 ]
 
 export class PacketList extends React.Component<IProps, IState> {
-  private m_TimeoutID: NodeJS.Timeout
+  private m_TimeoutID?: NodeJS.Timeout
 
   state = {
     currentTimestamp: 0,

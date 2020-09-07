@@ -22,7 +22,7 @@ def _captures():
       SELECT rowid, start_time, end_time, protocol, src_ip, src_port, dst_ip, dst_port, data_length
       FROM Captures
       WHERE start_time > ?
-      ORDER BY start_time DESC
+      ORDER BY start_time DESC, rowid DESC
     ''', (after_timestamp,))
 
     # Return the captured data as JSON

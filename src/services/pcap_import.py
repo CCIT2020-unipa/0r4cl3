@@ -36,9 +36,9 @@ def import_pcap(file_path: str, db_path: str) -> int:
     if len(session_flow) == 0:
       continue
 
-    # Convert to milliseconds from epoch
-    start_time = math.floor(session_flow[0].time * 1000)
-    end_time = math.floor(session_flow[-1].time * 1000)
+    # Convert to microseconds from epoch
+    start_time = math.floor(session_flow[0].time * 1000000)
+    end_time = math.floor(session_flow[-1].time * 1000000)
 
     # Extract protocol
     protocol = session_name.split(' ')[0]

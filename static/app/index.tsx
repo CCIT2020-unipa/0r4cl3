@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import 'antd/dist/antd.css'
 
-const App = () => <h1>Hello world</h1>
+import { App } from './App'
 
 ReactDOM.render(<App />, document.getElementById('root'))

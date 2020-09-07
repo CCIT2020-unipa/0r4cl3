@@ -4,17 +4,7 @@ import './PacketOverview.css'
 import { IPacketWithPayload } from '../../../../net/api'
 
 export const PacketOverview: React.SFC<IProps> = ({ packet }) => (
-  <div className='PacketOverview-container'>
-    {packet.data_bytes.split('\n').map((row, index) => (
-      <span
-        key={index}
-        className='PacketOverview-row'
-      >
-        {row}
-        <br />
-      </span>
-    ))}
-  </div>
+  <pre className='PacketOverview-content'>{packet.data_bytes}</pre>
 )
 
 interface IProps {

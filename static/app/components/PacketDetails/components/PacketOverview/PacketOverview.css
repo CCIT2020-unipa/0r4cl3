@@ -1,4 +1,5 @@
-.PacketOverview-container {
+.PacketOverview-content {
+  margin: 0 !important;
   overflow-x: hidden;
   overflow-y: auto;
 }

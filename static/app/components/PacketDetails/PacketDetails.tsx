@@ -14,17 +14,17 @@ const TABS_LIST: CardTabListType[] = [
 ]
 
 const TABS: ITabs = {
-  overview: (packet: IPacketWithPayload) => <PacketOverview packet={packet} />,
-  hexdump: (packet: IPacketWithPayload) => <PacketHexdump packet={packet} />
+  overview: (_: number, packet: IPacketWithPayload) => <PacketOverview packet={packet} />,
+  hexdump: (width: number, packet: IPacketWithPayload) => <PacketHexdump width={width} packet={packet} />
 }
 
-export const PacketDetails: React.SFC<IProps> = ({ height, packet }) => {
+export const PacketDetails: React.SFC<IProps> = ({ dimensions, packet }) => {
   const [selectedTab, setSelectedTab] = React.useState('overview')
 
   return (
     <Card
       bodyStyle={{
-        height,
+        height: dimensions.height,
         display: 'flex',
         flexDirection: 'column'
       }}
@@ -34,16 +34,19 @@ export const PacketDetails: React.SFC<IProps> = ({ height, packet }) => {
       activeTabKey={selectedTab}
       onTabChange={tab => setSelectedTab(tab)}
     >
-      {TABS[selectedTab](packet)}
+      {TABS[selectedTab](dimensions.width, packet)}
     </Card>
   )
 }
 
 interface IProps {
-  height: number
+  dimensions: {
+    height: number
+    width: number
+  }
   packet: IPacketWithPayload
 }
 
 interface ITabs {
-  [tab: string]: (packet: IPacketWithPayload) => JSX.Element
+  [tab: string]: (width: number, packet: IPacketWithPayload) => JSX.Element
 }

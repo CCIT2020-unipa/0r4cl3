@@ -18,16 +18,20 @@ const RESIZE_DETECTOR_REFRESH_RATE_MS = 1250
 export class Captures extends React.Component<{}, IState> {
   state = {
     tableHeight: 0,
-    focusedPacketHeight: 0,
+    focusedPacketDimensions: {
+      height: 0,
+      width: 0
+    },
     focusedPacket: null as IPacketWithPayload | null
   }
 
   render(): JSX.Element {
-    const { tableHeight, focusedPacketHeight, focusedPacket } = this.state
+    const { tableHeight, focusedPacketDimensions, focusedPacket } = this.state
 
     return (
       <ReactResizeDetector
         handleHeight
+        handleWidth
         refreshRate={RESIZE_DETECTOR_REFRESH_RATE_MS}
         refreshMode='throttle'
         onResize={this.updateTableHeight}
@@ -48,7 +52,7 @@ export class Captures extends React.Component<{}, IState> {
                   {
                     focusedPacket ? (
                       <PacketDetails
-                        height={focusedPacketHeight}
+                        dimensions={focusedPacketDimensions}
                         packet={focusedPacket}
                       />
                     ) : (
@@ -79,7 +83,10 @@ export class Captures extends React.Component<{}, IState> {
 
       this.setState((_, __) => ({
         tableHeight: newTableHeight,
-        focusedPacketHeight: newFocusedPacketHeight
+        focusedPacketDimensions: {
+          height: newFocusedPacketHeight,
+          width: content.clientWidth
+        }
       }))
     }
   }
@@ -97,6 +104,9 @@ export class Captures extends React.Component<{}, IState> {
 
 interface IState {
   tableHeight: number
-  focusedPacketHeight: number
+  focusedPacketDimensions: {
+    height: number
+    width: number
+  }
   focusedPacket: IPacketWithPayload | null
 }

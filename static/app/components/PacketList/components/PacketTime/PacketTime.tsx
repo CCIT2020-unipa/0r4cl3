@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Tooltip } from 'antd'
 
 import { IPacketNoPayload } from '../../../../net/api'
 
@@ -11,8 +12,22 @@ export const PacketTime: React.SFC<IProps> = ({ packet }) => {
   const minutes = localTime.getMinutes().toString().padStart(2, '0')
   const seconds = localTime.getSeconds().toString().padStart(2, '0')
   const millis = Math.floor(localTime.getTime() % 1000000).toString().padEnd(6, '0')
+  const sessionDuration = Math.floor((packet.end_time - packet.start_time) / 1000)
 
-  return <span>{`${day}/${month}/${year} ${hours}:${minutes}:${seconds}.${millis}`}</span>
+  const tooltip = (
+    <>
+      <span>Date: {`${day}/${month}/${year}`}</span>
+      <br />
+      <span>Duration: {`${sessionDuration}`}ms</span>
+    </>
+  )
+  const time = `${hours}:${minutes}:${seconds}.${millis}`
+
+  return (
+    <Tooltip placement='topLeft' title={tooltip}>
+      <span>{time}</span>
+    </Tooltip>
+  )
 }
 
 interface IProps {

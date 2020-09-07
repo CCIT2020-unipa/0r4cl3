@@ -69,13 +69,7 @@ export class PacketList extends React.Component<IProps, IState> {
 
   private computeColumns = (uniqueProtocols: string[]): ColumnsType<IPacketNoPayload> => [
     {
-      width: '5%',
-      title: 'No.',
-      dataIndex: 'rowid',
-      sorter: (packetA, packetB) => packetA.rowid - packetB.rowid
-    },
-    {
-      width: '15%',
+      width: '8%',
       title: 'Time',
       render: (_, packet) => <PacketTime packet={packet} />,
       sorter: (packetA, packetB) => packetA.start_time - packetB.start_time

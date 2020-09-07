@@ -12,12 +12,14 @@ const TABLE_COLUMNS: ColumnsType<IPacket> = [
   {
     width: '5%',
     title: 'No.',
-    dataIndex: 'rowid'
+    dataIndex: 'rowid',
+    sorter: (packetA, packetB) => packetA.rowid - packetB.rowid
   },
   {
     width: '15%',
     title: 'Time',
-    render: (_, packet) => <PacketTime packet={packet} />
+    render: (_, packet) => <PacketTime packet={packet} />,
+    sorter: (packetA, packetB) => packetA.start_time - packetB.start_time
   },
   {
     width: '5%',
@@ -35,7 +37,8 @@ const TABLE_COLUMNS: ColumnsType<IPacket> = [
     width: '5%',
     title: 'Length',
     dataIndex: 'data_length',
-    ellipsis: true
+    ellipsis: true,
+    sorter: (packetA, packetB) => packetA.data_length - packetB.data_length
   },
   {
     title: 'Hosts',

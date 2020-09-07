@@ -15,7 +15,7 @@ const TABLE_COLUMNS: ColumnsType<IPacket> = [
     dataIndex: 'rowid'
   },
   {
-    width: '10%',
+    width: '15%',
     title: 'Time',
     render: (_, packet) => <PacketTime packet={packet} />
   },

@@ -16,6 +16,7 @@ export interface IPacket {
   dst_ip: string
   dst_port: number
   data_length: number
+  data_length_string: string
   data_bytes?: string
   data_hex?: string
 }

@@ -36,7 +36,7 @@ const TABLE_COLUMNS: ColumnsType<IPacket> = [
   {
     width: '5%',
     title: 'Length',
-    dataIndex: 'data_length',
+    dataIndex: 'data_length_string',
     ellipsis: true,
     sorter: (packetA, packetB) => packetA.data_length - packetB.data_length
   },

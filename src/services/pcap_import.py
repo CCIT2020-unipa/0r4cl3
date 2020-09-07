@@ -6,6 +6,15 @@ import re
 IP_PORT_REGEX = r'((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])):([0-9]+)'
 
 
+# Source: https://stackoverflow.com/a/1094933
+def sizeof_fmt(num, suffix='B'):
+  for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+    if abs(num) < 1024.0:
+      return "%3.1f%s%s" % (num, unit, suffix)
+    num /= 1024.0
+  return "%.1f%s%s" % (num, 'Y', suffix)
+
+
 def is_http(data_bytes: bytes) -> bool:
   return data_bytes.startswith(b'HTTP')
 
@@ -30,6 +39,7 @@ def import_pcap(file_path: str, db_path: str) -> int:
       dst_ip TEXT NOT NULL,
       dst_port INTEGER NOT NULL,
       data_length INTEGER NOT NULL,
+      data_length_string TEXT NOT NULL,
       data_bytes BLOB NOT NULL,
       data_hex TEXT NOT NULL
     )
@@ -68,8 +78,12 @@ def import_pcap(file_path: str, db_path: str) -> int:
     if is_http(flow_data_bytes):
       protocol = 'HTTP'
 
+    # Compute data length
+    data_length = len(flow_data_bytes)
+    data_length_string = sizeof_fmt(data_length)
+
     # Register the extracted data
-    db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+    db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
       start_time,
       end_time,
       protocol,
@@ -77,7 +91,8 @@ def import_pcap(file_path: str, db_path: str) -> int:
       src_port,
       dst_ip,
       dst_port,
-      len(flow_data_bytes),
+      data_length,
+      data_length_string,
       flow_data_bytes,
       flow_data_hex
     ))

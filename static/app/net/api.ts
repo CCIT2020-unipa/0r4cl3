@@ -6,6 +6,14 @@ export const requestPackets = async (currentTimestamp: number): Promise<ICapture
   return res.json()
 }
 
+export const requestPacketDetails = async (packetID: number): Promise<IPacketWithPayload> => {
+  const res = await fetch(`/api/captures/${packetID}`, {
+    method: 'GET'
+  })
+
+  return res.json()
+}
+
 interface ICapturesResponse {
   packets: IPacketNoPayload[]
   unique_protocols: string[]

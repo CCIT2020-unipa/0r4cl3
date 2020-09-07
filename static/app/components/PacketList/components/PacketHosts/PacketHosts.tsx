@@ -7,8 +7,8 @@ export const PacketHosts: React.SFC<IProps> = ({ packet }) => (
   <Row>
     <Col span={11}>
       <Row>
-        <Col span={6}>{packet.src_ip}</Col>
-        <Col span={18}>
+        <Col span={12}>{packet.src_ip}</Col>
+        <Col span={12}>
           <Tag color='blue'>{packet.src_port}</Tag>
         </Col>
       </Row>
@@ -16,8 +16,8 @@ export const PacketHosts: React.SFC<IProps> = ({ packet }) => (
     <Col span={2}>⭢</Col>
     <Col span={11}>
       <Row>
-        <Col span={6}>{packet.dst_ip}</Col>
-        <Col span={18}>
+        <Col span={12}>{packet.dst_ip}</Col>
+        <Col span={12}>
           <Tag color='blue'>{packet.dst_port}</Tag>
         </Col>
       </Row>

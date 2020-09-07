@@ -42,7 +42,7 @@ def _packet_details(packet_id):
     # Fetch values as dictionaries rather than tuples
     db_connection.row_factory = sqlite_utils.dict_factory
     db_cursor = db_connection.cursor()
-    db_cursor.execute('SELECT * FROM Captures WHERE rowid = ?', (packet_id,))
+    db_cursor.execute('SELECT rowid, * FROM Captures WHERE rowid = ?', (packet_id,))
 
     # Convert 'data_bytes' BLOB to string
     packet = db_cursor.fetchone()

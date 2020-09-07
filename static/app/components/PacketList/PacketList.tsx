@@ -19,7 +19,7 @@ export class PacketList extends React.Component<IProps, IState> {
   }
 
   render(): JSX.Element {
-    const { tableHeight } = this.props
+    const { tableHeight, onRowPress } = this.props
     const { packets, uniqueProtocols } = this.state
 
     return (
@@ -30,11 +30,12 @@ export class PacketList extends React.Component<IProps, IState> {
         pagination={{
           defaultPageSize: 128,
           pageSizeOptions: ['16', '32', '64', '128', '256', '512'],
-          position: ['topRight'],
+          position: ['topLeft'],
           size: 'small'
         }}
         scroll={{ y: tableHeight }}
         size='small'
+        onRow={(packet, _) => ({ onClick: () => onRowPress(packet) })}
       />
     )
   }
@@ -69,13 +70,13 @@ export class PacketList extends React.Component<IProps, IState> {
 
   private computeColumns = (uniqueProtocols: string[]): ColumnsType<IPacketNoPayload> => [
     {
-      width: '8%',
+      width: '20%',
       title: 'Time',
       render: (_, packet) => <PacketTime packet={packet} />,
       sorter: (packetA, packetB) => packetA.start_time - packetB.start_time
     },
     {
-      width: '5%',
+      width: '12%',
       title: 'Protocol',
       dataIndex: 'protocol',
       ellipsis: true,
@@ -83,7 +84,7 @@ export class PacketList extends React.Component<IProps, IState> {
       onFilter: (value, record) => record.protocol === value
     },
     {
-      width: '5%',
+      width: '10%',
       title: 'Length',
       dataIndex: 'data_length_string',
       ellipsis: true,
@@ -98,6 +99,7 @@ export class PacketList extends React.Component<IProps, IState> {
 
 interface IProps {
   tableHeight: number
+  onRowPress: (packet: IPacketNoPayload) => void
 }
 
 interface IState {

@@ -17,13 +17,19 @@ const TABLE_COLUMNS: ColumnsType<IPacket> = [
   {
     width: '10%',
     title: 'Time',
-    render: (_: string, packet: IPacket) => <PacketTime packet={packet} />
+    render: (_, packet) => <PacketTime packet={packet} />
   },
   {
     width: '5%',
     title: 'Protocol',
     dataIndex: 'protocol',
-    ellipsis: true
+    ellipsis: true,
+    filters: [
+      // TODO: make the filters dynamic based on the fetched packets
+      { text: 'TCP', value: 'TCP' },
+      { text: 'HTTP', value: 'HTTP' }
+    ],
+    onFilter: (value, record) => record.protocol === value
   },
   {
     width: '5%',
@@ -33,7 +39,7 @@ const TABLE_COLUMNS: ColumnsType<IPacket> = [
   },
   {
     title: 'Hosts',
-    render: (_: string, packet: IPacket) => <PacketHosts packet={packet} />
+    render: (_, packet) => <PacketHosts packet={packet} />
   }
 ]
 

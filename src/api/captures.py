@@ -24,9 +24,17 @@ def _captures():
       WHERE start_time > ?
       ORDER BY start_time DESC, rowid DESC
     ''', (after_timestamp,))
+    packets = db_cursor.fetchall()
+
+    # Fetch unique packet protocols
+    db_cursor.execute('SELECT protocol FROM Captures GROUP BY protocol')
+    unique_protocols = list(map(lambda row: row['protocol'], db_cursor.fetchall()))
 
     # Return the captured data as JSON
-    return jsonify(db_cursor.fetchall())
+    return jsonify({
+      'packets': packets,
+      'unique_protocols': unique_protocols
+    })
 
 @captures.route('/captures/<int:packet_id>')
 def _packet_details(packet_id):

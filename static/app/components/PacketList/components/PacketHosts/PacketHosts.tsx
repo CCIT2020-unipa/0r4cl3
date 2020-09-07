@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Row, Col, Tag } from 'antd'
 
-import { IPacket } from '../../../../net/api'
+import { IPacketNoPayload } from '../../../../net/api'
 
 export const PacketHosts: React.SFC<IProps> = ({ packet }) => (
   <Row>
@@ -26,5 +26,5 @@ export const PacketHosts: React.SFC<IProps> = ({ packet }) => (
 )
 
 interface IProps {
-  packet: IPacket
+  packet: IPacketNoPayload
 }

@@ -1,4 +1,4 @@
-export const requestPackets = async (currentTimestamp: number): Promise<IPacket[]> => {
+export const requestPackets = async (currentTimestamp: number): Promise<ICapturesResponse> => {
   const res = await fetch(`/api/captures?after=${currentTimestamp}`, {
     method: 'GET'
   })
@@ -6,7 +6,12 @@ export const requestPackets = async (currentTimestamp: number): Promise<IPacket[
   return res.json()
 }
 
-export interface IPacket {
+interface ICapturesResponse {
+  packets: IPacketNoPayload[]
+  unique_protocols: string[]
+}
+
+export interface IPacketNoPayload {
   rowid: number
   start_time: number
   end_time: number
@@ -17,6 +22,9 @@ export interface IPacket {
   dst_port: number
   data_length: number
   data_length_string: string
-  data_bytes?: string
-  data_hex?: string
+}
+
+export interface IPacketWithPayload extends IPacketNoPayload {
+  data_bytes: string
+  data_hex: string
 }

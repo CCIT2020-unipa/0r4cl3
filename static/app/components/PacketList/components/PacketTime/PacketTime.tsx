@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { IPacket } from '../../../../net/api'
+import { IPacketNoPayload } from '../../../../net/api'
 
 export const PacketTime: React.SFC<IProps> = ({ packet }) => {
   const localTime = new Date(packet.start_time)
@@ -16,5 +16,5 @@ export const PacketTime: React.SFC<IProps> = ({ packet }) => {
 }
 
 interface IProps {
-  packet: IPacket
+  packet: IPacketNoPayload
 }

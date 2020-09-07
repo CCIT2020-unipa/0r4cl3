@@ -6,6 +6,10 @@ import re
 IP_PORT_REGEX = r'((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])):([0-9]+)'
 
 
+def is_http(data_bytes: bytes) -> bool:
+  return data_bytes.startswith(b'HTTP')
+
+
 def import_pcap(file_path: str, db_path: str) -> int:
   # Parse PCAP file
   sessions = sniff(offline=file_path, session=TCPSession).sessions()
@@ -40,9 +44,6 @@ def import_pcap(file_path: str, db_path: str) -> int:
     start_time = math.floor(session_flow[0].time * 1000000)
     end_time = math.floor(session_flow[-1].time * 1000000)
 
-    # Extract protocol
-    protocol = session_name.split(' ')[0]
-
     # Extract source and destination IPs from session name
     match = re.findall(IP_PORT_REGEX, session_name)
     src_ip = match[0][0]
@@ -55,11 +56,17 @@ def import_pcap(file_path: str, db_path: str) -> int:
     flow_data_hex = ''
 
     for session_packet in session_flow:
+      # Extract payload data
       if Raw in session_packet:
         data = session_packet[Raw].load
 
         flow_data_bytes += data
         flow_data_hex += data.hex()
+
+    # Extract protocol
+    protocol = session_name.split(' ')[0]
+    if is_http(flow_data_bytes):
+      protocol = 'HTTP'
 
     # Register the extracted data
     db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (

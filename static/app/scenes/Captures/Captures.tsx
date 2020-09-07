@@ -44,8 +44,7 @@ export class Captures extends React.Component<{}, IState> {
                     onRowPress={this.fetchPacketDetails}
                   />
                 </Col>
-                <Col span={1} />
-                <Col span={13}>
+                <Col span={14} style={{ paddingLeft: 40 }}>
                   {
                     focusedPacket ? (
                       <PacketDetails

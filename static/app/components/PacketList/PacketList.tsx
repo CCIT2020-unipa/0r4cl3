@@ -30,7 +30,7 @@ export class PacketList extends React.Component<IProps, IState> {
         pagination={{
           defaultPageSize: 128,
           pageSizeOptions: ['16', '32', '64', '128', '256', '512'],
-          position: ['topLeft'],
+          position: ['bottomLeft'],
           size: 'small'
         }}
         scroll={{ y: tableHeight }}

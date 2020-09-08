@@ -23,7 +23,7 @@ export const PacketDetails: React.SFC<IProps> = ({ dimensions, loading, packet }
   const [selectedTab, setSelectedTab] = React.useState('overview')
 
   if (!packet) {
-    return <NoSelection loading={loading} />
+    return <NoSelection height={dimensions.height} loading={loading} />
   }
 
   return (

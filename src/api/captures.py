@@ -46,6 +46,6 @@ def _packet_details(packet_id):
 
     # Convert 'data_bytes' BLOB to string
     packet = db_cursor.fetchone()
-    packet['data_bytes'] = packet['data_bytes'].decode('utf-8')
+    packet['data_bytes'] = packet['data_bytes'].decode('utf-8', 'ignore')
 
     return jsonify(packet)

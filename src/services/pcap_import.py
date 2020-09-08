@@ -3,6 +3,8 @@ import sqlite3
 import pyshark
 import math
 
+IGNORED_PROTOCOLS = ('data', 'data-text-lines', 'gsm_abis_rsl', 'gsm_ipa', 'irc')
+
 
 # Source: https://stackoverflow.com/a/1094933
 def sizeof_fmt(num, suffix='B'):
@@ -24,7 +26,7 @@ def parse_packet(packet) -> (int, float, [str], str, str, str, str, Optional[byt
   host_b_port = packet['tcp'].dstport
 
   # Extract protocol
-  protocols = filter(lambda protocol: protocol != 'data', packet.frame_info.protocols.split(':'))
+  protocols = filter(lambda protocol: protocol not in IGNORED_PROTOCOLS, packet.frame_info.protocols.split(':'))
   protocols = list(protocols)
 
   # Extract payload data

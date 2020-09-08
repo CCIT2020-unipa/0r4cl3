@@ -5,10 +5,12 @@ isort==5.5.1
 itsdangerous==1.1.0
 Jinja2==2.11.2
 lazy-object-proxy==1.5.1
+lxml==4.5.2
 MarkupSafe==1.1.1
 mccabe==0.6.1
+py==1.9.0
 pylint==2.6.0
-scapy==2.4.4
+pyshark==0.4.2.11
 six==1.15.0
 toml==0.10.1
 typed-ast==1.4.1

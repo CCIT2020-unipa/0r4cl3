@@ -1,9 +1,7 @@
-from scapy.all import *
+from typing import Optional
 import sqlite3
+import pyshark
 import math
-import re
-
-IP_PORT_REGEX = r'((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])):([0-9]+)'
 
 
 # Source: https://stackoverflow.com/a/1094933
@@ -15,14 +13,71 @@ def sizeof_fmt(num, suffix='B'):
   return "%.1f%s%s" % (num, 'Y', suffix)
 
 
-def is_http(data_bytes: bytes) -> bool:
-  return data_bytes.startswith(b'HTTP')
+def parse_packet(packet) -> (int, float, [str], str, str, str, str, Optional[bytes]):
+  # Convert to microseconds from epoch
+  timestamp = math.floor(float(packet.frame_info.time_epoch) * 1000000)
+
+  # Extract source and destination information
+  src_ip = packet['ip'].src
+  src_port = packet['tcp'].srcport
+  dst_ip = packet['ip'].dst
+  dst_port = packet['tcp'].dstport
+
+  # Extract protocol
+  protocols = filter(lambda protocol: protocol != 'data', packet.frame_info.protocols.split(':'))
+  protocols = list(protocols)
+
+  # Extract payload data
+  payload = bytes()
+  if hasattr(packet['tcp'], 'payload'):
+    payload = packet['tcp'].payload.binary_value
+
+  return (
+    int(packet['tcp'].stream),
+    timestamp,
+    protocols,
+    src_ip,
+    src_port,
+    dst_ip,
+    dst_port,
+    payload
+  )
 
 
 def import_pcap(file_path: str, db_path: str) -> int:
   # Parse PCAP file
-  sessions = sniff(offline=file_path, session=TCPSession).sessions()
-  sessions = sessions.items()
+  capture = pyshark.FileCapture(file_path)
+  streams = {}
+
+  while True:
+    try:
+      # Extract packet data
+      stream_no, timestamp, protocols, src_ip, src_port, dst_ip, dst_port, payload = parse_packet(capture.next())
+
+      if stream_no not in streams:
+        # Create a new stream entry
+        streams[stream_no] = {
+          'start_time': timestamp,
+          'end_time': timestamp,
+          'protocols': protocols,
+          'src_ip': src_ip,
+          'src_port': src_port,
+          'dst_ip': dst_ip,
+          'dst_port': dst_port,
+          'data_length': len(payload),
+          'data_bytes': payload
+        }
+      else:
+        # Update the packet's stream data
+        streams[stream_no]['end_time'] = timestamp
+        streams[stream_no]['data_length'] += len(payload)
+        streams[stream_no]['data_bytes'] += payload
+
+        # Use the highest level protocol
+        if len(protocols) > len(streams[stream_no]['protocols']):
+          streams[stream_no]['protocols'] = protocols
+    except StopIteration:
+      break
 
   # Connect to SQLite
   db_connection = sqlite3.connect(db_path)
@@ -40,65 +95,27 @@ def import_pcap(file_path: str, db_path: str) -> int:
       dst_port INTEGER NOT NULL,
       data_length INTEGER NOT NULL,
       data_length_string TEXT NOT NULL,
-      data_bytes BLOB NOT NULL,
-      data_hex TEXT NOT NULL
+      data_bytes BLOB NOT NULL
     )
   ''')
 
-  for session_name, session_flow in sessions:
-    # Skip if session is empty
-    if len(session_flow) == 0:
-      continue
-
-    # Convert to microseconds from epoch
-    start_time = math.floor(session_flow[0].time * 1000000)
-    end_time = math.floor(session_flow[-1].time * 1000000)
-
-    # Extract source and destination IPs from session name
-    match = re.findall(IP_PORT_REGEX, session_name)
-    src_ip = match[0][0]
-    src_port = match[0][-1]
-    dst_ip = match[1][0]
-    dst_port = match[1][-1]
-
-    # Extract TCP flow data
-    flow_data_bytes = bytes()
-    flow_data_hex = ''
-
-    for session_packet in session_flow:
-      # Extract payload data
-      if Raw in session_packet:
-        data = session_packet[Raw].load
-
-        flow_data_bytes += data
-        flow_data_hex += data.hex()
-
-    # Extract protocol
-    protocol = session_name.split(' ')[0]
-    if is_http(flow_data_bytes):
-      protocol = 'HTTP'
-
-    # Compute data length
-    data_length = len(flow_data_bytes)
-    data_length_string = sizeof_fmt(data_length)
-
-    # Register the extracted data
-    db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
-      start_time,
-      end_time,
-      protocol,
-      src_ip,
-      src_port,
-      dst_ip,
-      dst_port,
-      data_length,
-      data_length_string,
-      flow_data_bytes,
-      flow_data_hex
+  # Register streams
+  for _, stream in streams.items():
+    db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+      stream['start_time'],
+      stream['end_time'],
+      stream['protocols'][-1],
+      stream['src_ip'],
+      stream['src_port'],
+      stream['dst_ip'],
+      stream['dst_port'],
+      stream['data_length'],
+      sizeof_fmt(stream['data_length']),
+      stream['data_bytes']
     ))
 
   # Commit actions and close connection
   db_connection.commit()
   db_connection.close()
 
-  return len(sessions)
+  return len(streams.keys())

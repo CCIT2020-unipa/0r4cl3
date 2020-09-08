@@ -24,10 +24,10 @@ export interface IPacketNoPayload {
   start_time: number
   end_time: number
   protocol: string
-  src_ip: string
-  src_port: number
-  dst_ip: string
-  dst_port: number
+  host_a_ip: string
+  host_a_port: number
+  host_b_ip: string
+  host_b_port: number
   data_length: number
   data_length_string: string
 }

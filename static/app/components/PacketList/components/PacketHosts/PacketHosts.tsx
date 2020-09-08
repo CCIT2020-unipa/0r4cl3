@@ -7,18 +7,18 @@ export const PacketHosts: React.SFC<IProps> = ({ packet }) => (
   <Row>
     <Col span={11}>
       <Row>
-        <Col span={12}>{packet.src_ip}</Col>
+        <Col span={12}>{packet.host_a_ip}</Col>
         <Col span={12}>
-          <Tag color='blue'>{packet.src_port}</Tag>
+          <Tag color='blue'>{packet.host_a_port}</Tag>
         </Col>
       </Row>
     </Col>
-    <Col span={2}>⭢</Col>
+    <Col span={2}>⇋</Col>
     <Col span={11}>
       <Row>
-        <Col span={12}>{packet.dst_ip}</Col>
+        <Col span={12}>{packet.host_b_ip}</Col>
         <Col span={12}>
-          <Tag color='blue'>{packet.dst_port}</Tag>
+          <Tag color='blue'>{packet.host_b_port}</Tag>
         </Col>
       </Row>
     </Col>

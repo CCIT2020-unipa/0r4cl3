@@ -18,10 +18,10 @@ def parse_packet(packet) -> (int, float, [str], str, str, str, str, Optional[byt
   timestamp = math.floor(float(packet.frame_info.time_epoch) * 1000000)
 
   # Extract source and destination information
-  src_ip = packet['ip'].src
-  src_port = packet['tcp'].srcport
-  dst_ip = packet['ip'].dst
-  dst_port = packet['tcp'].dstport
+  host_a_ip = packet['ip'].src
+  host_a_port = packet['tcp'].srcport
+  host_b_ip = packet['ip'].dst
+  host_b_port = packet['tcp'].dstport
 
   # Extract protocol
   protocols = filter(lambda protocol: protocol != 'data', packet.frame_info.protocols.split(':'))
@@ -36,10 +36,10 @@ def parse_packet(packet) -> (int, float, [str], str, str, str, str, Optional[byt
     int(packet['tcp'].stream),
     timestamp,
     protocols,
-    src_ip,
-    src_port,
-    dst_ip,
-    dst_port,
+    host_a_ip,
+    host_a_port,
+    host_b_ip,
+    host_b_port,
     payload
   )
 
@@ -52,7 +52,7 @@ def import_pcap(file_path: str, db_path: str) -> int:
   while True:
     try:
       # Extract packet data
-      stream_no, timestamp, protocols, src_ip, src_port, dst_ip, dst_port, payload = parse_packet(capture.next())
+      stream_no, timestamp, protocols, host_a_ip, host_a_port, host_b_ip, host_b_port, payload = parse_packet(capture.next())
 
       if stream_no not in streams:
         # Create a new stream entry
@@ -60,10 +60,10 @@ def import_pcap(file_path: str, db_path: str) -> int:
           'start_time': timestamp,
           'end_time': timestamp,
           'protocols': protocols,
-          'src_ip': src_ip,
-          'src_port': src_port,
-          'dst_ip': dst_ip,
-          'dst_port': dst_port,
+          'host_a_ip': host_a_ip,
+          'host_a_port': host_a_port,
+          'host_b_ip': host_b_ip,
+          'host_b_port': host_b_port,
           'data_length': len(payload),
           'data_bytes': payload
         }
@@ -89,10 +89,10 @@ def import_pcap(file_path: str, db_path: str) -> int:
       start_time INTEGER NOT NULL,
       end_time INTEGER NOT NULL,
       protocol TEXT NOT NULL,
-      src_ip TEXT NOT NULL,
-      src_port INTEGER NOT NULL,
-      dst_ip TEXT NOT NULL,
-      dst_port INTEGER NOT NULL,
+      host_a_ip TEXT NOT NULL,
+      host_a_port INTEGER NOT NULL,
+      host_b_ip TEXT NOT NULL,
+      host_b_port INTEGER NOT NULL,
       data_length INTEGER NOT NULL,
       data_length_string TEXT NOT NULL,
       data_bytes BLOB NOT NULL
@@ -105,10 +105,10 @@ def import_pcap(file_path: str, db_path: str) -> int:
       stream['start_time'],
       stream['end_time'],
       stream['protocols'][-1],
-      stream['src_ip'],
-      stream['src_port'],
-      stream['dst_ip'],
-      stream['dst_port'],
+      stream['host_a_ip'],
+      stream['host_a_port'],
+      stream['host_b_ip'],
+      stream['host_b_port'],
       stream['data_length'],
       sizeof_fmt(stream['data_length']),
       stream['data_bytes']

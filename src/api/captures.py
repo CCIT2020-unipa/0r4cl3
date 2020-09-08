@@ -19,7 +19,7 @@ def _captures():
     # Fetch packets captured after the given timestamp
     db_cursor = db_connection.cursor()
     db_cursor.execute('''
-      SELECT rowid, start_time, end_time, protocol, src_ip, src_port, dst_ip, dst_port, data_length, data_length_string
+      SELECT rowid, start_time, end_time, protocol, host_a_ip, host_a_port, host_b_ip, host_b_port, data_length, data_length_string
       FROM Captures
       WHERE start_time > ?
       ORDER BY start_time DESC, rowid DESC

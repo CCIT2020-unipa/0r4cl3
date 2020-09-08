@@ -42,13 +42,13 @@ export class Captures extends React.Component<{}, IState> {
 
             <Content className='Captures-content' id='Captures-content'>
               <Row>
-                <Col span={10}>
+                <Col span={9}>
                   <PacketList
                     tableHeight={tableHeight}
                     onRowPress={this.fetchPacketDetails}
                   />
                 </Col>
-                <Col span={14} style={{ paddingLeft: 40 }}>
+                <Col span={15} style={{ paddingLeft: 40 }}>
                   {
                     focusedPacket ? (
                       <PacketDetails

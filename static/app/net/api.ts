@@ -14,6 +14,14 @@ export const requestPacketDetails = async (packetID: number): Promise<IPacketWit
   return res.json()
 }
 
+export const queryPacketsContent = async (query: string): Promise<ICapturesResponse> => {
+  const res = await fetch(`/api/captures?contains=${query}`, {
+    method: 'GET'
+  })
+
+  return res.json()
+}
+
 interface ICapturesResponse {
   packets: IPacketNoPayload[]
   unique_protocols: string[]

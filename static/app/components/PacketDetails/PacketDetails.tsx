@@ -3,6 +3,7 @@ import { Card } from 'antd'
 import { CardTabListType } from 'antd/lib/card'
 import './PacketDetails.css'
 
+import { NoSelection } from './components/NoSelection'
 import { PacketOverview } from './components/PacketOverview'
 import { PacketHexdump } from './components/PacketHexdump'
 
@@ -18,8 +19,12 @@ const TABS: ITabs = {
   hexdump: (width: number, packet: IPacketWithPayload) => <PacketHexdump width={width} packet={packet} />
 }
 
-export const PacketDetails: React.SFC<IProps> = ({ dimensions, packet }) => {
+export const PacketDetails: React.SFC<IProps> = ({ dimensions, loading, packet }) => {
   const [selectedTab, setSelectedTab] = React.useState('overview')
+
+  if (!packet) {
+    return <NoSelection loading={loading} />
+  }
 
   return (
     <Card
@@ -44,7 +49,8 @@ interface IProps {
     height: number
     width: number
   }
-  packet: IPacketWithPayload
+  loading: boolean
+  packet: IPacketWithPayload | null
 }
 
 interface ITabs {

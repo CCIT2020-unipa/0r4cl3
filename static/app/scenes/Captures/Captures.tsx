@@ -22,11 +22,17 @@ export class Captures extends React.Component<{}, IState> {
       height: 0,
       width: 0
     },
+    loadingPacket: false,
     focusedPacket: null as IPacketWithPayload | null
   }
 
   render(): JSX.Element {
-    const { tableHeight, focusedPacketDimensions, focusedPacket } = this.state
+    const {
+      tableHeight,
+      focusedPacketDimensions,
+      focusedPacket,
+      loadingPacket
+    } = this.state
 
     return (
       <ReactResizeDetector
@@ -49,16 +55,11 @@ export class Captures extends React.Component<{}, IState> {
                   />
                 </Col>
                 <Col span={15} style={{ paddingLeft: 40 }}>
-                  {
-                    focusedPacket ? (
-                      <PacketDetails
-                        dimensions={focusedPacketDimensions}
-                        packet={focusedPacket}
-                      />
-                    ) : (
-                      null
-                    )
-                  }
+                  <PacketDetails
+                    dimensions={focusedPacketDimensions}
+                    loading={loadingPacket}
+                    packet={focusedPacket}
+                  />
                 </Col>
               </Row>
             </Content>
@@ -95,10 +96,15 @@ export class Captures extends React.Component<{}, IState> {
     // Skip if details for the requested packet have already been rendered
     if (this.state.focusedPacket?.rowid === packet.rowid) return
 
-    requestPacketDetails(packet.rowid)
-      .then(packetDetails => {
-        this.setState((_, __) => ({ focusedPacket: packetDetails }))
-      })
+    this.setState((_, __) => ({ loadingPacket: true, focusedPacket: null }), () => {
+      requestPacketDetails(packet.rowid)
+        .then(packetDetails => {
+          this.setState((_, __) => ({
+            focusedPacket: packetDetails,
+            loadingPacket: false
+          }))
+        })
+    })
   }
 }
 
@@ -108,5 +114,6 @@ interface IState {
     height: number
     width: number
   }
+  loadingPacket: boolean
   focusedPacket: IPacketWithPayload | null
 }

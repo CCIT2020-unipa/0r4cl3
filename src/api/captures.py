@@ -11,19 +11,50 @@ captures = Blueprint('captures', __name__)
 def _captures():
   # Parse query string parameters
   after_timestamp = request.args.get('after', 0)
+  data_contains = request.args.get('contains', None)
 
   with sqlite3.connect(DB_PATH) as db_connection:
     # Fetch values as dictionaries rather than tuples
     db_connection.row_factory = sqlite_utils.dict_factory
-
-    # Fetch packets captured after the given timestamp
     db_cursor = db_connection.cursor()
-    db_cursor.execute('''
-      SELECT rowid, start_time, end_time, protocol, host_a_ip, host_a_port, host_b_ip, host_b_port, data_length, data_length_string
-      FROM Captures
-      WHERE start_time > ?
-      ORDER BY start_time DESC, rowid DESC
-    ''', (after_timestamp,))
+
+    if data_contains is None:
+      # Fetch packets captured after the given timestamp
+      db_cursor.execute('''
+        SELECT rowid,
+               start_time,
+               end_time,
+               protocol,
+               host_a_ip,
+               host_a_port,
+               host_b_ip,
+               host_b_port,
+               data_length,
+               data_length_string
+        FROM Captures
+        WHERE start_time > ?
+        ORDER BY start_time DESC, rowid DESC
+      ''', (after_timestamp,))
+    else:
+      # Fetch packets that contains a given string in their data
+      db_cursor.execute('''
+        SELECT rank,
+               Captures.rowid,
+               start_time,
+               end_time,
+               protocol,
+               host_a_ip,
+               host_a_port,
+               host_b_ip,
+               host_b_port,
+               data_length,
+               data_length_string
+        FROM Captures, CapturesIndex
+        WHERE CapturesIndex.data_printable MATCH ? AND
+              Captures.rowid = CapturesIndex.rowid
+        ORDER BY rank DESC
+      ''', (data_contains,))
+
     packets = db_cursor.fetchall()
 
     # Fetch unique packet protocols

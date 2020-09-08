@@ -18,7 +18,7 @@ const computeHexdumpWidth = (screenWidth: number): number => {
 
 export const PacketHexdump: React.SFC<IProps> = ({ width, packet }) => (
   <pre className='PacketOverview-content'>
-    {hexy(packet.data_bytes, { width: computeHexdumpWidth(width) })}
+    {hexy(packet.data_printable, { width: computeHexdumpWidth(width) })}
   </pre>
 )
 

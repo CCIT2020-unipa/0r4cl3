@@ -44,8 +44,8 @@ def _packet_details(packet_id):
     db_cursor = db_connection.cursor()
     db_cursor.execute('SELECT rowid, * FROM Captures WHERE rowid = ?', (packet_id,))
 
-    # Convert 'data_bytes' BLOB to string
+    # Remove the 'data_bytes' field from the response
     packet = db_cursor.fetchone()
-    packet['data_bytes'] = packet['data_bytes'].decode('utf-8', 'ignore')
+    del packet['data_bytes']
 
     return jsonify(packet)

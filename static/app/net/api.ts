@@ -33,6 +33,5 @@ export interface IPacketNoPayload {
 }
 
 export interface IPacketWithPayload extends IPacketNoPayload {
-  data_bytes: string
-  data_hex: string
+  data_printable: string
 }

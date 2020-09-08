@@ -97,13 +97,41 @@ def import_pcap(file_path: str, db_path: str) -> int:
       host_b_port INTEGER NOT NULL,
       data_length INTEGER NOT NULL,
       data_length_string TEXT NOT NULL,
-      data_bytes BLOB NOT NULL
+      data_bytes BLOB NOT NULL,
+      data_printable TEXT NOT NULL
     )
+  ''')
+
+  # Create the 'CapturesIndex' table to perform full-text queries
+  db_cursor.execute('''
+    CREATE VIRTUAL TABLE IF NOT EXISTS CapturesIndex USING fts5(data_printable, tokenize=porter)
+  ''')
+
+  # Keep 'Captures' and 'CapturesIndex' tables in sync using triggers
+  # Trigger on INSERT
+  db_cursor.execute('''
+    CREATE TRIGGER IF NOT EXISTS OnCapturesInsert AFTER INSERT ON Captures BEGIN
+      INSERT INTO CapturesIndex(rowid, data_printable) VALUES (new.rowid, new.data_printable);
+    END
+  ''')
+
+  # Trigger on UPDATE
+  db_cursor.execute('''
+    CREATE TRIGGER IF NOT EXISTS OnCapturesUpdate UPDATE OF data_printable ON Captures BEGIN
+      UPDATE CapturesIndex SET data_printable = new.data_printable WHERE rowid = old.rowid;
+    END
+  ''')
+
+  # Trigger on DELETE
+  db_cursor.execute('''
+    CREATE TRIGGER IF NOT EXISTS OnCapturesDelete AFTER DELETE ON Captures BEGIN
+      DELETE FROM CapturesIndex WHERE rowid = old.rowid;
+    END
   ''')
 
   # Register streams
   for _, stream in streams.items():
-    db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+    db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
       stream['start_time'],
       stream['end_time'],
       stream['protocols'][-1],
@@ -113,7 +141,8 @@ def import_pcap(file_path: str, db_path: str) -> int:
       stream['host_b_port'],
       stream['data_length'],
       sizeof_fmt(stream['data_length']),
-      stream['data_bytes']
+      stream['data_bytes'],
+      stream['data_bytes'].decode('utf-8', 'ignore')
     ))
 
   # Commit actions and close connection

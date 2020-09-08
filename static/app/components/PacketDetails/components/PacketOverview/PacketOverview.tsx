@@ -5,7 +5,7 @@ import { IPacketWithPayload } from '../../../../net/api'
 
 export const PacketOverview: React.SFC<IProps> = ({ packet }) => (
   <pre className='PacketOverview-content'>
-    {packet.data_bytes}
+    {packet.data_printable}
   </pre>
 )
 

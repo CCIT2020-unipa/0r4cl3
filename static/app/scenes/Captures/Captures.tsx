@@ -29,8 +29,8 @@ export class Captures extends React.Component<{}, IState> {
     lastTimestamp: 0,
     packets: [],
     packetsProtocols: [],
-    filteredPackets: [],
-    filteredPacketsProtocols: [],
+    filteredPackets: null,
+    filteredPacketsProtocols: null,
     focusedPacketLoading: false,
     focusedPacketDimensions: { height: 0, width: 0 },
     focusedPacket: null as IPacketWithPayload | null
@@ -75,8 +75,8 @@ export class Captures extends React.Component<{}, IState> {
                 <Col span={9}>
                   <PacketList
                     height={tableHeight}
-                    packets={filteredPackets.length > 0 ? filteredPackets : packets}
-                    protocols={filteredPackets.length > 0 ? filteredPacketsProtocols : packetsProtocols}
+                    packets={filteredPackets !== null ? filteredPackets!! : packets}
+                    protocols={filteredPacketsProtocols !== null ? filteredPacketsProtocols!! : packetsProtocols}
                     onRowPress={this.fetchPacketDetails}
                   />
                 </Col>
@@ -188,8 +188,8 @@ export class Captures extends React.Component<{}, IState> {
   private onSearchReset = (): void => {
     this.setState((_, __) => ({
       query: '',
-      filteredPackets: [],
-      filteredPacketsProtocols: []
+      filteredPackets: null,
+      filteredPacketsProtocols: null
     }))
   }
 }
@@ -200,8 +200,8 @@ interface IState {
   lastTimestamp: number
   packets: IPacketNoPayload[]
   packetsProtocols: string[]
-  filteredPackets: IPacketNoPayload[]
-  filteredPacketsProtocols: string[]
+  filteredPackets: IPacketNoPayload[] | null
+  filteredPacketsProtocols: string[] | null
   focusedPacketLoading: boolean
   focusedPacketDimensions: { height: number, width: number }
   focusedPacket: IPacketWithPayload | null

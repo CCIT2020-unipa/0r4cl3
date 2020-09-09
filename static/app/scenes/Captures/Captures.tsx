@@ -73,7 +73,6 @@ export class Captures extends React.Component<{}, IState> {
             <Content className='Captures-content' id='Captures-content'>
               <Row>
                 <Col span={9}>
-                  {/* TODO: fix re-rendering after search bar change */}
                   <PacketList
                     height={tableHeight}
                     packets={filteredPackets.length > 0 ? filteredPackets : packets}

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import ReactResizeDetector from 'react-resize-detector'
-import { PageHeader, Layout, Input, Row, Col } from 'antd'
+import { PageHeader, Layout, Input, Tooltip, Row, Col } from 'antd'
 import { CloseCircleTwoTone } from '@ant-design/icons'
 const { Content } = Layout
 const { Search } = Input
@@ -68,7 +68,11 @@ export class Captures extends React.Component<{}, IState> {
                 placeholder="Filter by payload's content"
                 onSearch={this.onSearchSubmit}
                 enterButton
-                suffix={<CloseCircleTwoTone onClick={this.onSearchReset} />}
+                suffix={
+                  <Tooltip placement='bottom' title='Reset filter'>
+                    <CloseCircleTwoTone onClick={this.onSearchReset} />
+                  </Tooltip>
+                }
               />
             </PageHeader>
 

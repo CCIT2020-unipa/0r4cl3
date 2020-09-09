@@ -1,26 +1,11 @@
-export const requestPackets = async (currentTimestamp: number): Promise<ICapturesResponse> => {
-  const res = await fetch(`/api/captures?after=${currentTimestamp}`, {
-    method: 'GET'
-  })
+export const requestPackets = async (currentTimestamp: number): Promise<ICapturesResponse> =>
+  (await fetch(`/api/captures?after=${currentTimestamp}`)).json()
 
-  return res.json()
-}
+export const requestPacketsByContent = async (query: string): Promise<ICapturesResponse> =>
+  (await fetch(`/api/captures?contains=${query}`)).json()
 
-export const requestPacketDetails = async (packetID: number): Promise<IPacketWithPayload> => {
-  const res = await fetch(`/api/captures/${packetID}`, {
-    method: 'GET'
-  })
-
-  return res.json()
-}
-
-export const queryPacketsContent = async (query: string): Promise<ICapturesResponse> => {
-  const res = await fetch(`/api/captures?contains=${query}`, {
-    method: 'GET'
-  })
-
-  return res.json()
-}
+export const requestPacketDetails = async (packetID: number): Promise<IPacketWithPayload> =>
+  (await fetch(`/api/captures/${packetID}`)).json()
 
 interface ICapturesResponse {
   packets: IPacketNoPayload[]

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import ReactResizeDetector from 'react-resize-detector'
 import { PageHeader, Layout, Input, Row, Col } from 'antd'
 import { CloseCircleTwoTone } from '@ant-design/icons'
@@ -13,14 +14,15 @@ import {
   IPacketNoPayload,
   IPacketWithPayload,
   requestPackets,
-  requestPacketDetails,
-  queryPacketsContent
+  requestPacketsByContent,
+  requestPacketDetails
 } from '../../net/api'
 
 // const PACKETS_UPDATE_INTERVAL_MS = 30000
 const RESIZE_DETECTOR_REFRESH_RATE_MS = 1250
 
 export class Captures extends React.Component<{}, IState> {
+  private m_ContentRef: React.Component | null = null
   private m_TimeoutID?: NodeJS.Timeout
 
   state = {
@@ -63,14 +65,17 @@ export class Captures extends React.Component<{}, IState> {
               <Search
                 value={query}
                 onChange={this.onSearchChange}
-                placeholder='Search'
+                placeholder="Filter by payload's content"
                 onSearch={this.onSearchSubmit}
                 enterButton
                 suffix={<CloseCircleTwoTone onClick={this.onSearchReset} />}
               />
             </PageHeader>
 
-            <Content className='Captures-content' id='Captures-content'>
+            <Content
+              className='Captures-content'
+              ref={ref => { this.m_ContentRef = ref }}
+            >
               <Row>
                 <Col span={9}>
                   <PacketList
@@ -95,6 +100,32 @@ export class Captures extends React.Component<{}, IState> {
     )
   }
 
+  /**
+   * Window resize-related methods
+   */
+  private updateTableHeight = (): void => {
+    if (this.m_ContentRef === null) return
+
+    const content = ReactDOM.findDOMNode(this.m_ContentRef) as HTMLElement
+    const newTableHeight = content.clientHeight
+      - 48 // Top and bottom 'Captures-content' margins
+      - 24 // Pagination height
+      - 32 // Top and bottom pagination margins
+    const newFocusedPacketHeight = content.clientHeight
+      - 98 // Card header
+
+    this.setState((_, __) => ({
+      tableHeight: newTableHeight,
+      focusedPacketDimensions: {
+        height: newFocusedPacketHeight,
+        width: content.clientWidth
+      }
+    }))
+  }
+
+  /**
+   * Data fetching-related methods
+   */
   async componentDidMount() {
     await this.fetchPackets()
     // this.m_TimeoutID = setInterval(async () => await this.fetchPackets(), PACKETS_UPDATE_INTERVAL_MS)
@@ -103,29 +134,6 @@ export class Captures extends React.Component<{}, IState> {
   componentWillUnmount() {
     // Stop fetching packets
     if (this.m_TimeoutID) clearInterval(this.m_TimeoutID)
-  }
-
-  private updateTableHeight = (): void => {
-    // TODO: use react refs
-    const content = document.getElementById('Captures-content')
-
-    if (content) {
-      const newTableHeight = content.clientHeight
-        - 48 // Top and bottom 'Captures-content' margins
-        - 24 // Pagination height
-        - 32 // Top and bottom pagination margins
-
-      const newFocusedPacketHeight = content.clientHeight
-        - 98 // Card header
-
-      this.setState((_, __) => ({
-        tableHeight: newTableHeight,
-        focusedPacketDimensions: {
-          height: newFocusedPacketHeight,
-          width: content.clientWidth
-        }
-      }))
-    }
   }
 
   private fetchPackets = async (): Promise<void> => {
@@ -176,7 +184,7 @@ export class Captures extends React.Component<{}, IState> {
     // Skip if query is empty
     if (query.length === 0) return;
 
-    queryPacketsContent(query)
+    requestPacketsByContent(query)
       .then(({ packets, unique_protocols: uniqueProtocols }) => {
         this.setState((_, __) => ({
           filteredPackets: packets,

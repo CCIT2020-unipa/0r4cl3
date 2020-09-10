@@ -19,7 +19,7 @@ import {
   requestPacketDetails
 } from '../../net/api'
 
-// const PACKETS_UPDATE_INTERVAL_MS = 30000
+const PACKETS_UPDATE_INTERVAL_MS = 30000
 const RESIZE_DETECTOR_REFRESH_RATE_MS = 1250
 
 export class Captures extends React.Component<{}, IState> {
@@ -135,7 +135,7 @@ export class Captures extends React.Component<{}, IState> {
    */
   async componentDidMount() {
     await this.fetchPackets()
-    // this.m_TimeoutID = setInterval(async () => await this.fetchPackets(), PACKETS_UPDATE_INTERVAL_MS)
+    this.m_TimeoutID = setInterval(async () => await this.fetchPackets(), PACKETS_UPDATE_INTERVAL_MS) as NodeJS.Timeout
   }
 
   componentWillUnmount() {

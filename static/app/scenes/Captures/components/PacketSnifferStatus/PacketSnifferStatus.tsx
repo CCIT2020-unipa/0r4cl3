@@ -39,7 +39,7 @@ export class PacketSnifferStatus extends React.Component<{}, IState> {
    */
   async componentDidMount() {
     await this.fetchStatus()
-    this.m_TimeoutID = setInterval(async () => await this.fetchStatus(), STATUS_UPDATE_INTERVAL_MS)
+    this.m_TimeoutID = setInterval(async () => await this.fetchStatus(), STATUS_UPDATE_INTERVAL_MS) as NodeJS.Timeout
   }
 
   componentWillUnmount() {

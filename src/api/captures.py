@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from .utils import sqlite_utils
+from .utils import sqlite_utils, captures_utils
 import sqlite3
 
 captures = Blueprint('captures', __name__)
@@ -54,6 +54,9 @@ def _captures():
       ''', (data_contains,))
 
     packets = db_cursor.fetchall()
+
+    # Extract the highest level protocol
+    packets = list(map(captures_utils.extract_protocol, packets))
 
     # Fetch unique packet protocols
     db_cursor.execute('''

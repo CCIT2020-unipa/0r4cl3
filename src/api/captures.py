@@ -2,10 +2,8 @@ from flask import Blueprint, request, jsonify
 from .utils import sqlite_utils
 import sqlite3
 
-PCAP_PATH = './test_captures/dump-2018-06-27_13_25_31.pcap'
-DB_PATH = './captures.db'
-
 captures = Blueprint('captures', __name__)
+DB_PATH = './captures.db'
 
 @captures.route('/captures')
 def _captures():
@@ -24,7 +22,7 @@ def _captures():
         SELECT rowid,
                start_time,
                end_time,
-               protocol,
+               protocols,
                host_a_ip,
                host_a_port,
                host_b_ip,
@@ -42,7 +40,7 @@ def _captures():
                Captures.rowid,
                start_time,
                end_time,
-               protocol,
+               protocols,
                host_a_ip,
                host_a_port,
                host_b_ip,
@@ -58,7 +56,16 @@ def _captures():
     packets = db_cursor.fetchall()
 
     # Fetch unique packet protocols
-    db_cursor.execute('SELECT protocol FROM Captures GROUP BY protocol')
+    db_cursor.execute('''
+      -- Split ':' separated values into multiple rows
+      WITH RECURSIVE split(protocol, str) AS (
+        SELECT '', protocols || ':' FROM Captures
+        UNION ALL SELECT substr(str, 0, instr(str, ':')), substr(str, instr(str, ':') + 1)
+        FROM split WHERE str != ''
+      )
+      SELECT protocol FROM split WHERE protocol != ''
+      GROUP BY protocol
+    ''')
     unique_protocols = list(map(lambda row: row['protocol'], db_cursor.fetchall()))
 
     # Return the captured data as JSON

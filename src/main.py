@@ -4,15 +4,11 @@ from os import path
 import os
 import atexit
 
-# from .services.pcap_import import import_pcap
-from .services.pcap_generator import PcapGenerator
+from .services.packet_sniffer import PacketSniffer
 
-CAPTURES_OUTPUT_FOLDER_PATH = path.join(path.dirname(__file__), '../captures')
-CAPTURES_INTERFACE = 'en1'
-CAPTURES_INTERVAL = 60
-DB_PATH = './captures.db'
 STATIC_FOLDER_PATH = path.join(path.dirname(__file__), '../static')
-PCAP_PATH = './test_captures/dump-2018-06-27_13_25_31.pcap'
+DB_PATH = './captures.db'
+CAPTURES_INTERFACE = 'en1'
 
 app = Flask(__name__, static_folder=STATIC_FOLDER_PATH)
 app.register_blueprint(captures, url_prefix='/api')
@@ -25,7 +21,7 @@ def _index(path):
 
 def on_program_exit():
   # Terminate the packets capturing service
-  PcapGenerator().terminate()
+  PacketSniffer().terminate()
 
 
 if __name__ == '__main__':
@@ -33,15 +29,11 @@ if __name__ == '__main__':
     print('this server requires root privileges to run')
     exit(1)
 
-  # print(f'importing {PCAP_PATH} ...')
-  # n_sessions = import_pcap(PCAP_PATH, DB_PATH)
-  # print(f'imported {n_sessions} sessions')
-
   # Register a clean-up function
   atexit.register(on_program_exit)
 
   # Start the packets capturing service
-  PcapGenerator().start(CAPTURES_INTERFACE, CAPTURES_INTERVAL, CAPTURES_OUTPUT_FOLDER_PATH)
+  PacketSniffer().start(CAPTURES_INTERFACE, DB_PATH)
 
-  # Enable hot reloading for the backend
-  app.run(debug=True)
+  # Start flask backend
+  app.run()

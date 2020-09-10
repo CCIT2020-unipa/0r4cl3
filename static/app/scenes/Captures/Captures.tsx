@@ -7,6 +7,7 @@ const { Content } = Layout
 const { Search } = Input
 import './Captures.css'
 
+import { PacketSnifferStatus } from './components/PacketSnifferStatus'
 import { PacketList } from '../../components/PacketList'
 import { PacketDetails } from '../../components/PacketDetails'
 
@@ -61,7 +62,9 @@ export class Captures extends React.Component<{}, IState> {
       >
         {() => (
           <Layout className='Captures-container'>
-            <PageHeader title='0r4cl3'>
+            <PageHeader title='0r4cl3' extra={[
+              <PacketSnifferStatus key='1' />
+            ]}>
               <Search
                 value={query}
                 onChange={this.onSearchChange}

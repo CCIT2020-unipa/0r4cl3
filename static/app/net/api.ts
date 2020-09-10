@@ -7,9 +7,16 @@ export const requestPacketsByContent = async (query: string): Promise<ICapturesR
 export const requestPacketDetails = async (packetID: number): Promise<IPacketWithPayload> =>
   (await fetch(`/api/captures/${packetID}`)).json()
 
+export const requestPacketSnifferStatus = async (): Promise<IPacketSnifferStatusResponse> =>
+  (await fetch('/api/captures/status')).json()
+
 interface ICapturesResponse {
   packets: IPacketNoPayload[]
   unique_protocols: string[]
+}
+
+interface IPacketSnifferStatusResponse {
+  online: boolean
 }
 
 export interface IPacketNoPayload {

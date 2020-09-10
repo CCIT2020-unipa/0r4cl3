@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
-from .utils import sqlite_utils, captures_utils
 import sqlite3
+
+from .utils import sqlite_utils, captures_utils
+from ..services.packet_sniffer import PacketSniffer
 
 captures = Blueprint('captures', __name__)
 DB_PATH = './captures.db'
@@ -90,3 +92,7 @@ def _packet_details(packet_id):
     del packet['data_bytes']
 
     return jsonify(packet)
+
+@captures.route('/captures/status')
+def _status():
+  return jsonify({ 'online': PacketSniffer().is_running() })

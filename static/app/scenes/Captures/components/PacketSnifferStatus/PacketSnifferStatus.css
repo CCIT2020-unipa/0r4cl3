@@ -1,0 +1,11 @@
+.PacketSnifferStatus-container {
+  display: flex;
+  align-items: center;
+}
+
+.PacketSnifferStatus-indicator_container {
+  display: flex;
+  align-items: center;
+
+  margin-left: 4px;
+}

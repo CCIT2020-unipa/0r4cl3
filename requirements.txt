@@ -8,6 +8,7 @@ lazy-object-proxy==1.5.1
 lxml==4.5.2
 MarkupSafe==1.1.1
 mccabe==0.6.1
+psutil==5.7.2
 py==1.9.0
 pylint==2.6.0
 pyshark==0.4.2.11

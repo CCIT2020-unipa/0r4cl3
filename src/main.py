@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from .api import captures
+from .api import streams, sniffer
 from os import path
 import os
 import atexit
@@ -7,11 +7,12 @@ import atexit
 from .services.packet_sniffer import PacketSniffer
 
 STATIC_FOLDER_PATH = path.join(path.dirname(__file__), '../static')
-DB_PATH = './captures.db'
-CAPTURES_INTERFACE = 'en1'
+SNIFFER_INTERFACE = 'en1'
+DB_PATH = './data.db'
 
 app = Flask(__name__, static_folder=STATIC_FOLDER_PATH)
-app.register_blueprint(captures, url_prefix='/api')
+app.register_blueprint(streams, url_prefix='/api')
+app.register_blueprint(sniffer, url_prefix='/api')
 
 @app.route('/', defaults={ 'path': '' })
 @app.route('/<path:path>')
@@ -20,7 +21,7 @@ def _index(path):
 
 
 def on_program_exit():
-  # Terminate the packets capturing service
+  # Terminate the packet sniffer service
   PacketSniffer().terminate()
 
 
@@ -32,8 +33,8 @@ if __name__ == '__main__':
   # Register a clean-up function
   atexit.register(on_program_exit)
 
-  # Start the packets capturing service
-  PacketSniffer().start(CAPTURES_INTERFACE, DB_PATH)
+  # Start the packet sniffer service
+  PacketSniffer().start(SNIFFER_INTERFACE, DB_PATH)
 
   # Start flask backend
   app.run()

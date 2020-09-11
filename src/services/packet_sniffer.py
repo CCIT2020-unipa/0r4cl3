@@ -6,8 +6,8 @@ import math
 
 IGNORED_PROTOCOLS = ('data', 'data-text-lines', 'gsm_abis_rsl', 'gsm_ipa', 'irc')
 
-CapturedStream = Tuple[
-  int,    # Stream no.
+DataStream = Tuple[
+  int,    # Stream number
   int,    # Start time
   int,    # End time
   str,    # Protocols
@@ -21,14 +21,14 @@ CapturedStream = Tuple[
   str,    # Unicode decoded stream's data
 ]
 CapturedPacket = Tuple[
-  int,   # Stream no.
-  int,   # Timestamp
+  int,   # Corresponding stream number
+  int,   # Time of capturing
   str,   # Protocols
   str,   # Host A IP
   str,   # Host A port
   str,   # Host B IP
   str,   # Host B port
-  bytes  # Packet's payload
+  bytes  # Payload
 ]
 
 
@@ -43,9 +43,9 @@ def sizeof_fmt(num, suffix='B'):
 
 # Setup the necessary tables for the DB to work
 def setup_database(db_cursor: sqlite3.Cursor):
-  # Create the 'Captures' table
+  # Create the 'Streams' table
   db_cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Captures (
+    CREATE TABLE IF NOT EXISTS Streams (
       stream_no INTEGER NOT NULL,
       start_time INTEGER NOT NULL,
       end_time INTEGER NOT NULL,
@@ -61,36 +61,36 @@ def setup_database(db_cursor: sqlite3.Cursor):
     )
   ''')
 
-  # Create the 'CapturesIndex' table to perform full-text queries
+  # Create the 'StreamsIndex' table to perform full-text queries
   db_cursor.execute('''
-    CREATE VIRTUAL TABLE IF NOT EXISTS CapturesIndex USING fts5(data_printable, tokenize=porter)
+    CREATE VIRTUAL TABLE IF NOT EXISTS StreamsIndex USING fts5(data_printable, tokenize=porter)
   ''')
 
-  # Keep 'Captures' and 'CapturesIndex' tables in sync using triggers
+  # Keep 'Streams' and 'StreamsIndex' tables in sync using triggers
   # Trigger on INSERT
   db_cursor.execute('''
-    CREATE TRIGGER IF NOT EXISTS OnCapturesInsert AFTER INSERT ON Captures BEGIN
-      INSERT INTO CapturesIndex(rowid, data_printable) VALUES (new.rowid, new.data_printable);
+    CREATE TRIGGER IF NOT EXISTS OnStreamsInsert AFTER INSERT ON Streams BEGIN
+      INSERT INTO StreamsIndex(rowid, data_printable) VALUES (new.rowid, new.data_printable);
     END
   ''')
 
   # Trigger on UPDATE
   db_cursor.execute('''
-    CREATE TRIGGER IF NOT EXISTS OnCapturesUpdate UPDATE OF data_printable ON Captures BEGIN
-      UPDATE CapturesIndex SET data_printable = new.data_printable WHERE rowid = old.rowid;
+    CREATE TRIGGER IF NOT EXISTS OnStreamsUpdate UPDATE OF data_printable ON Streams BEGIN
+      UPDATE StreamsIndex SET data_printable = new.data_printable WHERE rowid = old.rowid;
     END
   ''')
 
   # Trigger on DELETE
   db_cursor.execute('''
-    CREATE TRIGGER IF NOT EXISTS OnCapturesDelete AFTER DELETE ON Captures BEGIN
-      DELETE FROM CapturesIndex WHERE rowid = old.rowid;
+    CREATE TRIGGER IF NOT EXISTS OnStreamsDelete AFTER DELETE ON Streams BEGIN
+      DELETE FROM StreamsIndex WHERE rowid = old.rowid;
     END
   ''')
 
 
-def stream_exists(db_cursor: sqlite3.Cursor, stream_no: int) -> Optional[CapturedStream]:
-  db_cursor.execute('SELECT * FROM Captures WHERE stream_no = ?', (stream_no,))
+def stream_exists(db_cursor: sqlite3.Cursor, stream_no: int) -> Optional[DataStream]:
+  db_cursor.execute('SELECT * FROM Streams WHERE stream_no = ?', (stream_no,))
   return db_cursor.fetchone()
 
 
@@ -142,13 +142,13 @@ def sniff(interface_name: str, db_path: str):
 
     # Extract packet data
     stream_no, timestamp, protocols, host_a_ip, host_a_port, host_b_ip, host_b_port, payload = parse_packet(packet)
-    captured_stream = stream_exists(db_cursor, stream_no)
+    fetched_data_stream = stream_exists(db_cursor, stream_no)
 
-    if captured_stream is None:
+    if fetched_data_stream is None:
       data_len = len(payload)
 
       # Create a new stream entry
-      db_cursor.execute('INSERT INTO Captures VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+      db_cursor.execute('INSERT INTO Streams VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
         stream_no,
         timestamp,
         timestamp,
@@ -163,16 +163,16 @@ def sniff(interface_name: str, db_path: str):
         payload.decode('utf-8', 'ignore')
       ))
     else:
-      updated_protocols = captured_stream[3]
+      updated_protocols = fetched_data_stream[3]
       if len(protocols) > len(updated_protocols):
         updated_protocols = protocols
 
-      updated_data_bytes = captured_stream[10] + payload
+      updated_data_bytes = fetched_data_stream[10] + payload
       updated_data_len = len(updated_data_bytes)
 
       # Update an existing stream
       db_cursor.execute('''
-        UPDATE Captures
+        UPDATE Streams
         SET end_time = ?,
             protocols = ?,
             data_length = ?,
@@ -221,7 +221,7 @@ class PacketSniffer:
 
   @staticmethod
   def start(interface_name: str, db_path: str):
-    print('starting a new packet sniffer process... ', end='')
+    print('starting packet sniffer process... ', end='')
     PacketSniffer.process = multiprocessing.Process(target=sniff, args=(interface_name, db_path))
     PacketSniffer.process.start()
     print('DONE')

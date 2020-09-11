@@ -1,14 +1,13 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 import sqlite3
 
-from .utils import sqlite_utils, captures_utils
-from ..services.packet_sniffer import PacketSniffer
+from .utils import sqlite_utils, streams_utils
 
-captures = Blueprint('captures', __name__)
-DB_PATH = './captures.db'
+streams = Blueprint('streams', __name__)
+DB_PATH = './data.db'
 
-@captures.route('/captures')
-def _captures():
+@streams.route('/streams')
+def _streams():
   # Parse query string parameters
   after_timestamp = request.args.get('after', 0)
   data_contains = request.args.get('contains', None)
@@ -32,7 +31,7 @@ def _captures():
                host_b_port,
                data_length,
                data_length_string
-        FROM Captures
+        FROM Streams
         WHERE end_time > ?
         ORDER BY end_time DESC, rowid DESC
       ''', (after_timestamp,))
@@ -40,7 +39,7 @@ def _captures():
       # Fetch streams that contains a given string in their data
       db_cursor.execute('''
         SELECT rank,
-               Captures.rowid,
+               Streams.rowid,
                stream_no,
                start_time,
                end_time,
@@ -51,22 +50,22 @@ def _captures():
                host_b_port,
                data_length,
                data_length_string
-        FROM Captures, CapturesIndex
-        WHERE CapturesIndex.data_printable MATCH ? AND
-              Captures.rowid = CapturesIndex.rowid
+        FROM Streams, StreamsIndex
+        WHERE StreamsIndex.data_printable MATCH ? AND
+              Streams.rowid = StreamsIndex.rowid
         ORDER BY rank DESC
       ''', (data_contains,))
 
-    packets = db_cursor.fetchall()
+    fetched_streams = db_cursor.fetchall()
 
     # Extract the highest level protocol
-    packets = list(map(captures_utils.extract_protocol, packets))
+    fetched_streams = list(map(streams_utils.extract_protocol, fetched_streams))
 
-    # Fetch unique packet protocols
+    # Fetch unique protocols
     db_cursor.execute('''
       -- Split ':' separated values into multiple rows
       WITH RECURSIVE split(protocol, str) AS (
-        SELECT '', protocols || ':' FROM Captures
+        SELECT '', protocols || ':' FROM Streams
         UNION ALL SELECT substr(str, 0, instr(str, ':')), substr(str, instr(str, ':') + 1)
         FROM split WHERE str != ''
       )
@@ -75,26 +74,22 @@ def _captures():
     ''')
     unique_protocols = list(map(lambda row: row['protocol'], db_cursor.fetchall()))
 
-    # Return the captured data as JSON
-    return jsonify({
-      'packets': packets,
+    return {
+      'streams': fetched_streams,
       'unique_protocols': unique_protocols
-    })
+    }
 
-@captures.route('/captures/<int:packet_id>')
-def _packet_details(packet_id):
+@streams.route('/streams/<int:stream_id>')
+def _stream_details(stream_id):
   with sqlite3.connect(DB_PATH) as db_connection:
     # Fetch values as dictionaries rather than tuples
     db_connection.row_factory = sqlite_utils.dict_factory
     db_cursor = db_connection.cursor()
-    db_cursor.execute('SELECT rowid, * FROM Captures WHERE rowid = ?', (packet_id,))
+
+    db_cursor.execute('SELECT rowid, * FROM Streams WHERE rowid = ?', (stream_id,))
 
     # Remove the 'data_bytes' field from the response
-    packet = db_cursor.fetchone()
-    del packet['data_bytes']
+    stream = db_cursor.fetchone()
+    del stream['data_bytes']
 
-    return jsonify(packet)
-
-@captures.route('/captures/status')
-def _status():
-  return jsonify({ 'online': PacketSniffer().is_running() })
+    return stream

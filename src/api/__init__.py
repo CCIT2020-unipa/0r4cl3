@@ -1,1 +1,2 @@
-from .captures import captures
+from .streams import streams
+from .sniffer import sniffer

@@ -1,6 +1,6 @@
-import { IPacketNoPayload } from '../api'
+import { IStreamNoPayload } from '../api'
 
-export const mergeStreams = (currentStreams: IPacketNoPayload[], newStreams: IPacketNoPayload[]): IPacketNoPayload[] => {
+export const mergeStreams = (currentStreams: IStreamNoPayload[], newStreams: IStreamNoPayload[]): IStreamNoPayload[] => {
   const streams = [...currentStreams, ...newStreams]
   const result = new Map()
 

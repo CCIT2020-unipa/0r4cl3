@@ -5,13 +5,13 @@ import {
   Route
 } from 'react-router-dom'
 
-import { Captures } from './scenes/Captures'
+import { Streams } from './scenes/Streams'
 
 export const App: React.SFC = () => (
   <BrowserRouter>
     <Switch>
-      <Route path='/captures'>
-        <Captures />
+      <Route path='/streams'>
+        <Streams />
       </Route>
       <Route path='/'>
         <h1>I mean, hi</h1>

@@ -126,76 +126,81 @@ def parse_packet(packet) -> CapturedPacket:
 
 
 def sniff(interface_name: str, db_path: str):
-  # Start live sniffing
-  capture = pyshark.LiveCapture(interface=interface_name)
+  try:
+    # Start live sniffing
+    capture = pyshark.LiveCapture(interface=interface_name)
 
-  # Connect to SQLite
-  db_connection = sqlite3.connect(db_path)
-  db_cursor = db_connection.cursor()
-  setup_database(db_cursor)
+    # Connect to SQLite
+    db_connection = sqlite3.connect(db_path)
+    db_cursor = db_connection.cursor()
+    setup_database(db_cursor)
 
-  # Parse live packet data
-  for packet in capture.sniff_continuously():
-    # Skip non-TCP packets
-    if 'TCP' not in packet:
-      continue
+    # Parse live packet data
+    for packet in capture.sniff_continuously():
+      # Skip non-TCP packets
+      if 'TCP' not in packet:
+        continue
 
-    # Extract packet data
-    stream_no, timestamp, protocols, host_a_ip, host_a_port, host_b_ip, host_b_port, payload = parse_packet(packet)
-    fetched_data_stream = stream_exists(db_cursor, stream_no)
+      # Extract packet data
+      stream_no, timestamp, protocols, host_a_ip, host_a_port, host_b_ip, host_b_port, payload = parse_packet(packet)
+      fetched_data_stream = stream_exists(db_cursor, stream_no)
 
-    if fetched_data_stream is None:
-      data_len = len(payload)
+      if fetched_data_stream is None:
+        data_len = len(payload)
 
-      # Create a new stream entry
-      db_cursor.execute('INSERT INTO Streams VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
-        stream_no,
-        timestamp,
-        timestamp,
-        protocols,
-        host_a_ip,
-        host_a_port,
-        host_b_ip,
-        host_b_port,
-        data_len,
-        sizeof_fmt(data_len),
-        payload,
-        payload.decode('utf-8', 'ignore')
-      ))
-    else:
-      updated_protocols = fetched_data_stream[3]
-      if len(protocols) > len(updated_protocols):
-        updated_protocols = protocols
+        # Create a new stream entry
+        db_cursor.execute('INSERT INTO Streams VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+          stream_no,
+          timestamp,
+          timestamp,
+          protocols,
+          host_a_ip,
+          host_a_port,
+          host_b_ip,
+          host_b_port,
+          data_len,
+          sizeof_fmt(data_len),
+          payload,
+          payload.decode('utf-8', 'ignore')
+        ))
+      else:
+        updated_protocols = fetched_data_stream[3]
+        if len(protocols) > len(updated_protocols):
+          updated_protocols = protocols
 
-      updated_data_bytes = fetched_data_stream[10] + payload
-      updated_data_len = len(updated_data_bytes)
+        updated_data_bytes = fetched_data_stream[10] + payload
+        updated_data_len = len(updated_data_bytes)
 
-      # Update an existing stream
-      db_cursor.execute('''
-        UPDATE Streams
-        SET end_time = ?,
-            protocols = ?,
-            data_length = ?,
-            data_length_string = ?,
-            data_bytes = ?,
-            data_printable = ?
-        WHERE stream_no = ?
-      ''', (
-        timestamp,
-        updated_protocols,
-        updated_data_len,
-        sizeof_fmt(updated_data_len),
-        updated_data_bytes,
-        updated_data_bytes.decode('utf-8', 'ignore'),
-        stream_no
-      ))
+        # Update an existing stream
+        db_cursor.execute('''
+          UPDATE Streams
+          SET end_time = ?,
+              protocols = ?,
+              data_length = ?,
+              data_length_string = ?,
+              data_bytes = ?,
+              data_printable = ?
+          WHERE stream_no = ?
+        ''', (
+          timestamp,
+          updated_protocols,
+          updated_data_len,
+          sizeof_fmt(updated_data_len),
+          updated_data_bytes,
+          updated_data_bytes.decode('utf-8', 'ignore'),
+          stream_no
+        ))
 
-    # Commit changes
+      # Commit changes
+      db_connection.commit()
+
+    # Commit any remaining actions and close connection
     db_connection.commit()
-
-  # Commit any remaining actions and close connection
-  db_connection.commit()
-  db_connection.close()
+    db_connection.close()
+  except KeyboardInterrupt:
+    # Gracefully terminate the packet sniffer service
+    print()
+    print('keyboard interrupt received, ready to terminate packet sniffer process')
 
 
 class PacketSniffer:

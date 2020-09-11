@@ -18,6 +18,7 @@ import {
   requestPacketsByContent,
   requestPacketDetails
 } from '../../net/api'
+import { apiUtils } from '../../net/api/index'
 
 const PACKETS_UPDATE_INTERVAL_MS = 30000
 const RESIZE_DETECTOR_REFRESH_RATE_MS = 1250
@@ -144,21 +145,27 @@ export class Captures extends React.Component<{}, IState> {
   }
 
   private fetchPackets = async (): Promise<void> => {
-    const { lastTimestamp } = this.state
+    const { lastTimestamp, packets, packetsProtocols } = this.state
     const {
-      packets,
-      unique_protocols: uniqueProtocols
+      packets: fetchedPackets,
+      unique_protocols: fetchedUniqueProtocols
     } = await requestPackets(lastTimestamp)
 
     // Find the timestamp of the latest packet
-    const newTimestamp = packets.length > 0
-      ? Math.max(...packets.map(packet => packet.start_time))
+    const newTimestamp = fetchedPackets.length > 0
+      ? Math.max(...fetchedPackets.map(packet => packet.start_time))
       : lastTimestamp
 
-    this.setState((prevState, _) => ({
+    // Merge current and fetched packets
+    const updatedPackets = apiUtils.mergeStreams(packets, fetchedPackets)
+
+    // Extract unique protocols
+    const updatedPacketsProtocols = apiUtils.mergeProtocols(packetsProtocols, fetchedUniqueProtocols)
+
+    this.setState((_, __) => ({
       lastTimestamp: newTimestamp,
-      packets: [...prevState.packets, ...packets],
-      packetsProtocols: uniqueProtocols
+      packets: updatedPackets,
+      packetsProtocols: updatedPacketsProtocols
     }))
   }
 

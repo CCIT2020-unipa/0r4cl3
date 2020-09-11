@@ -21,6 +21,7 @@ interface IPacketSnifferStatusResponse {
 
 export interface IPacketNoPayload {
   rowid: number
+  stream_no: number
   start_time: number
   end_time: number
   protocol: string

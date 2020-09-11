@@ -19,9 +19,10 @@ def _captures():
     db_cursor = db_connection.cursor()
 
     if data_contains is None:
-      # Fetch packets captured after the given timestamp
+      # Fetch streams modified after the given timestamp
       db_cursor.execute('''
         SELECT rowid,
+               stream_no,
                start_time,
                end_time,
                protocols,
@@ -32,14 +33,15 @@ def _captures():
                data_length,
                data_length_string
         FROM Captures
-        WHERE start_time > ?
-        ORDER BY start_time DESC, rowid DESC
+        WHERE end_time > ?
+        ORDER BY end_time DESC, rowid DESC
       ''', (after_timestamp,))
     else:
-      # Fetch packets that contains a given string in their data
+      # Fetch streams that contains a given string in their data
       db_cursor.execute('''
         SELECT rank,
                Captures.rowid,
+               stream_no,
                start_time,
                end_time,
                protocols,

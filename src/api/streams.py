@@ -58,25 +58,15 @@ def _streams():
 
     fetched_streams = db_cursor.fetchall()
 
-    # Extract the highest level protocol
+    # Extract the highest level protocol for each stream
     fetched_streams = list(map(streams_utils.extract_protocol, fetched_streams))
 
-    # Fetch unique protocols
-    db_cursor.execute('''
-      -- Split ':' separated values into multiple rows
-      WITH RECURSIVE split(protocol, str) AS (
-        SELECT '', protocols || ':' FROM Streams
-        UNION ALL SELECT substr(str, 0, instr(str, ':')), substr(str, instr(str, ':') + 1)
-        FROM split WHERE str != ''
-      )
-      SELECT protocol FROM split WHERE protocol != ''
-      GROUP BY protocol
-    ''')
-    unique_protocols = list(map(lambda row: row['protocol'], db_cursor.fetchall()))
+    # Extract highest level protocols used for the current session
+    protocols = list(set(map(lambda stream: stream['protocol'], fetched_streams)))
 
     return {
       'streams': fetched_streams,
-      'unique_protocols': unique_protocols
+      'protocols': protocols
     }
 
 @streams.route('/streams/<int:stream_id>')

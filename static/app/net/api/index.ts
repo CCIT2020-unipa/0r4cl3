@@ -15,7 +15,7 @@ export const requestPacketSnifferStatus = async (): Promise<IPacketSnifferStatus
 
 interface IStreamsResponse {
   streams: IStreamNoPayload[]
-  unique_protocols: string[]
+  protocols: string[]
 }
 
 interface IPacketSnifferStatusResponse {

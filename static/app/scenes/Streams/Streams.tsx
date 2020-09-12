@@ -143,7 +143,7 @@ export class Streams extends React.Component<{}, IState> {
 
   private fetchStreams = async (): Promise<void> => {
     const { lastTimestamp, streams, streamsProtocols } = this.state
-    const { streams: fetchedStreams, unique_protocols: fetchedStreamsProtocols } = await requestStreams(lastTimestamp)
+    const { streams: fetchedStreams, protocols: fetchedStreamsProtocols } = await requestStreams(lastTimestamp)
 
     // Find the timestamp of the last updated stream
     const newTimestamp = fetchedStreams.length > 0
@@ -190,10 +190,10 @@ export class Streams extends React.Component<{}, IState> {
     if (query.length === 0) return;
 
     requestStreamsByContent(query)
-      .then(({ streams, unique_protocols: uniqueProtocols }) => {
+      .then(({ streams, protocols }) => {
         this.setState(() => ({
           filteredStreams: streams,
-          filteredStreamsProtocols: uniqueProtocols
+          filteredStreamsProtocols: protocols
         }))
       })
   }

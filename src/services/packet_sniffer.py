@@ -1,25 +1,12 @@
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 import multiprocessing
 import pyshark
-import sqlite3
 import math
+
+from ..services.sqlite_database import SQLiteDatabase
 
 IGNORED_PROTOCOLS = ('data', 'data-text-lines', 'gsm_abis_rsl', 'gsm_ipa', 'irc')
 
-DataStream = Tuple[
-  int,    # Stream number
-  int,    # Start time
-  int,    # End time
-  str,    # Protocols
-  str,    # Host A IP
-  str,    # Host A port
-  str,    # Host B IP
-  str,    # Host B port
-  int,    # Data length (in bytes)
-  str,    # Human readable data length
-  bytes,  # Reconstructed stream's data
-  str,    # Unicode decoded stream's data
-]
 CapturedPacket = Tuple[
   int,   # Corresponding stream number
   int,   # Time of capturing
@@ -41,57 +28,8 @@ def sizeof_fmt(num, suffix='B'):
   return "%.1f%s%s" % (num, 'Y', suffix)
 
 
-# Setup the necessary tables for the DB to work
-def setup_database(db_cursor: sqlite3.Cursor):
-  # Create the 'Streams' table
-  db_cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Streams (
-      stream_no INTEGER NOT NULL,
-      start_time INTEGER NOT NULL,
-      end_time INTEGER NOT NULL,
-      protocols TEXT NOT NULL,
-      host_a_ip TEXT NOT NULL,
-      host_a_port INTEGER NOT NULL,
-      host_b_ip TEXT NOT NULL,
-      host_b_port INTEGER NOT NULL,
-      data_length INTEGER NOT NULL,
-      data_length_string TEXT NOT NULL,
-      data_bytes BLOB NOT NULL,
-      data_printable TEXT NOT NULL
-    )
-  ''')
-
-  # Create the 'StreamsIndex' table to perform full-text queries
-  db_cursor.execute('''
-    CREATE VIRTUAL TABLE IF NOT EXISTS StreamsIndex USING fts5(data_printable, tokenize=porter)
-  ''')
-
-  # Keep 'Streams' and 'StreamsIndex' tables in sync using triggers
-  # Trigger on INSERT
-  db_cursor.execute('''
-    CREATE TRIGGER IF NOT EXISTS OnStreamsInsert AFTER INSERT ON Streams BEGIN
-      INSERT INTO StreamsIndex(rowid, data_printable) VALUES (new.rowid, new.data_printable);
-    END
-  ''')
-
-  # Trigger on UPDATE
-  db_cursor.execute('''
-    CREATE TRIGGER IF NOT EXISTS OnStreamsUpdate UPDATE OF data_printable ON Streams BEGIN
-      UPDATE StreamsIndex SET data_printable = new.data_printable WHERE rowid = old.rowid;
-    END
-  ''')
-
-  # Trigger on DELETE
-  db_cursor.execute('''
-    CREATE TRIGGER IF NOT EXISTS OnStreamsDelete AFTER DELETE ON Streams BEGIN
-      DELETE FROM StreamsIndex WHERE rowid = old.rowid;
-    END
-  ''')
-
-
-def stream_exists(db_cursor: sqlite3.Cursor, stream_no: int) -> Optional[DataStream]:
-  db_cursor.execute('SELECT * FROM Streams WHERE stream_no = ?', (stream_no,))
-  return db_cursor.fetchone()
+def stream_exists(stream_no: int) -> Optional[Any]:
+  return SQLiteDatabase.execute('SELECT * FROM Streams WHERE stream_no = ?', stream_no).fetchone()
 
 
 def parse_packet(packet) -> CapturedPacket:
@@ -125,15 +63,10 @@ def parse_packet(packet) -> CapturedPacket:
   )
 
 
-def sniff(interface_name: str, db_path: str):
+def sniff(interface_name: str):
   try:
     # Start live sniffing
     capture = pyshark.LiveCapture(interface=interface_name)
-
-    # Connect to SQLite
-    db_connection = sqlite3.connect(db_path)
-    db_cursor = db_connection.cursor()
-    setup_database(db_cursor)
 
     # Parse live packet data
     for packet in capture.sniff_continuously():
@@ -143,13 +76,14 @@ def sniff(interface_name: str, db_path: str):
 
       # Extract packet data
       stream_no, timestamp, protocols, host_a_ip, host_a_port, host_b_ip, host_b_port, payload = parse_packet(packet)
-      fetched_data_stream = stream_exists(db_cursor, stream_no)
+      fetched_data_stream = stream_exists(stream_no)
 
       if fetched_data_stream is None:
         data_len = len(payload)
 
         # Create a new stream entry
-        db_cursor.execute('INSERT INTO Streams VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+        SQLiteDatabase().execute(
+          'INSERT INTO Streams VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           stream_no,
           timestamp,
           timestamp,
@@ -162,26 +96,27 @@ def sniff(interface_name: str, db_path: str):
           sizeof_fmt(data_len),
           payload,
           payload.decode('utf-8', 'ignore')
-        ))
+        )
       else:
-        updated_protocols = fetched_data_stream[3]
+        updated_protocols = fetched_data_stream['protocols']
         if len(protocols) > len(updated_protocols):
           updated_protocols = protocols
 
-        updated_data_bytes = fetched_data_stream[10] + payload
+        updated_data_bytes = fetched_data_stream['data_bytes'] + payload
         updated_data_len = len(updated_data_bytes)
 
         # Update an existing stream
-        db_cursor.execute('''
-          UPDATE Streams
-          SET end_time = ?,
-              protocols = ?,
-              data_length = ?,
-              data_length_string = ?,
-              data_bytes = ?,
-              data_printable = ?
-          WHERE stream_no = ?
-        ''', (
+        SQLiteDatabase().execute(
+          '''
+            UPDATE Streams
+            SET end_time = ?,
+                protocols = ?,
+                data_length = ?,
+                data_length_string = ?,
+                data_bytes = ?,
+                data_printable = ?
+            WHERE stream_no = ?
+          ''',
           timestamp,
           updated_protocols,
           updated_data_len,
@@ -189,14 +124,7 @@ def sniff(interface_name: str, db_path: str):
           updated_data_bytes,
           updated_data_bytes.decode('utf-8', 'ignore'),
           stream_no
-        ))
-
-      # Commit changes
-      db_connection.commit()
-
-    # Commit any remaining actions and close connection
-    db_connection.commit()
-    db_connection.close()
+        )
   except KeyboardInterrupt:
     # Gracefully terminate the packet sniffer service
     print()
@@ -225,9 +153,9 @@ class PacketSniffer:
   process: Optional[multiprocessing.Process] = None
 
   @staticmethod
-  def start(interface_name: str, db_path: str):
+  def start(interface_name: str):
     print('starting packet sniffer process... ', end='')
-    PacketSniffer.process = multiprocessing.Process(target=sniff, args=(interface_name, db_path))
+    PacketSniffer.process = multiprocessing.Process(target=sniff, args=(interface_name,))
     PacketSniffer.process.start()
     print('DONE')
 

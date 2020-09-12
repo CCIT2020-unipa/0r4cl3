@@ -34,6 +34,7 @@ export class Streams extends React.Component<{}, IState> {
     lastTimestamp: 0,
     streams: [],
     streamsProtocols: [],
+    streamsLoading: true,
     filteredStreams: null,
     filteredStreamsProtocols: null,
     focusedStream: null as IStreamWithPayload | null,
@@ -47,6 +48,7 @@ export class Streams extends React.Component<{}, IState> {
       tableHeight,
       streams,
       streamsProtocols,
+      streamsLoading,
       filteredStreams,
       filteredStreamsProtocols,
       focusedStream,
@@ -70,7 +72,7 @@ export class Streams extends React.Component<{}, IState> {
               <Search
                 value={query}
                 onChange={this.onSearchChange}
-                placeholder="Filter by payload's content"
+                placeholder='Filter streams by their content'
                 onSearch={this.onSearchSubmit}
                 enterButton
                 suffix={
@@ -88,6 +90,7 @@ export class Streams extends React.Component<{}, IState> {
                     height={tableHeight}
                     streams={filteredStreams !== null ? filteredStreams!! : streams}
                     protocols={filteredStreamsProtocols !== null ? filteredStreamsProtocols!! : streamsProtocols}
+                    loading={streamsLoading}
                     onRowPress={this.fetchStreamDetails}
                   />
                 </Col>
@@ -132,9 +135,9 @@ export class Streams extends React.Component<{}, IState> {
   /**
    * Data fetching-related methods
    */
-  async componentDidMount() {
-    await this.fetchStreams()
-    this.m_TimeoutID = setInterval(async () => await this.fetchStreams(), STREAMS_UPDATE_INTERVAL_MS) as NodeJS.Timeout
+  componentDidMount() {
+    this.fetchStreams()
+    this.m_TimeoutID = setInterval(() => this.fetchStreams(), STREAMS_UPDATE_INTERVAL_MS) as NodeJS.Timeout
   }
 
   componentWillUnmount() {
@@ -142,41 +145,44 @@ export class Streams extends React.Component<{}, IState> {
     if (this.m_TimeoutID) clearInterval(this.m_TimeoutID)
   }
 
-  private fetchStreams = async (): Promise<void> => {
+  private fetchStreams = (): void => {
     const { lastTimestamp, streams, streamsProtocols } = this.state
 
-    try {
-      const { streams: fetchedStreams, protocols: fetchedStreamsProtocols } = await requestStreams(lastTimestamp)
+    this.setState(() => ({ streamsLoading: true }), async () => {
+      try {
+        const { streams: fetchedStreams, protocols: fetchedStreamsProtocols } = await requestStreams(lastTimestamp)
 
-      // Find the timestamp of the last updated stream
-      const newTimestamp = fetchedStreams.length > 0
-        ? Math.max(...fetchedStreams.map(stream => stream.end_time))
-        : lastTimestamp
+        // Find the timestamp of the last updated stream
+        const newTimestamp = fetchedStreams.length > 0
+          ? Math.max(...fetchedStreams.map(stream => stream.end_time))
+          : lastTimestamp
 
-      // Merge current and fetched streams
-      const mergedStreams = apiUtils.mergeStreams(streams, fetchedStreams)
+        // Merge current and fetched streams
+        const mergedStreams = apiUtils.mergeStreams(streams, fetchedStreams)
 
-      // Extract protocols
-      const mergedStreamsProtocols = apiUtils.mergeProtocols(streamsProtocols, fetchedStreamsProtocols)
+        // Extract protocols
+        const mergedStreamsProtocols = apiUtils.mergeProtocols(streamsProtocols, fetchedStreamsProtocols)
 
-      this.setState(() => ({
-        lastTimestamp: newTimestamp,
-        streams: mergedStreams,
-        streamsProtocols: mergedStreamsProtocols
-      }), () => {
-        // Update search results
-        this.onSearchSubmit()
-      })
-    } catch {
-      notification.error({
-        placement: 'bottomRight',
-        className: 'Notification-container',
-        message: <Title className='Notification-message' level={5}>Cannot connect to 0r4cl3 server</Title>,
-        description: <Text className='Notification-description'>Make sure you are connected to the internet and the server is up and running</Text>,
-        icon: <DisconnectOutlined className='Notification-icon' />,
-        closeIcon: <CloseOutlined className='Notification-icon' />
-      })
-    }
+        this.setState(() => ({
+          lastTimestamp: newTimestamp,
+          streams: mergedStreams,
+          streamsProtocols: mergedStreamsProtocols,
+          streamsLoading: false
+        }), () => {
+          // Update search results
+          this.onSearchSubmit()
+        })
+      } catch {
+        notification.error({
+          placement: 'bottomRight',
+          className: 'Notification-container',
+          message: <Title className='Notification-message' level={5}>Cannot connect to 0r4cl3 server</Title>,
+          description: <Text className='Notification-description'>Make sure you are connected to the internet and the server is up and running</Text>,
+          icon: <DisconnectOutlined className='Notification-icon' />,
+          closeIcon: <CloseOutlined className='Notification-icon' />
+        })
+      }
+    })
   }
 
   private fetchStreamDetails = (stream: IStreamNoPayload): void => {
@@ -229,6 +235,7 @@ interface IState {
   lastTimestamp: number
   streams: IStreamNoPayload[]
   streamsProtocols: string[]
+  streamsLoading: boolean
   filteredStreams: IStreamNoPayload[] | null
   filteredStreamsProtocols: string[] | null
   focusedStream: IStreamWithPayload | null

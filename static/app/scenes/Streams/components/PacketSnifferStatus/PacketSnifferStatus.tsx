@@ -25,9 +25,9 @@ export class PacketSnifferStatus extends React.Component<{}, IState> {
 
         <div className='PacketSnifferStatus-indicator_container'>
           {online ? (
-            <Text type='success'>online</Text>
+            <Text type='success'>capturing packets</Text>
           ) : (
-            <Text type='danger'>offline</Text>
+            <Text type='danger'>sniffer offline</Text>
           )}
         </div>
       </div>

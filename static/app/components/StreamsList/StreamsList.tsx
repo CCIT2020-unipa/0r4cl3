@@ -9,7 +9,7 @@ import { IStreamNoPayload } from '../../net/api'
 
 export class StreamsList extends React.PureComponent<IProps> {
   render(): JSX.Element {
-    const { height, streams, onRowPress } = this.props
+    const { height, streams, loading, onRowPress } = this.props
 
     return (
       <Table
@@ -24,6 +24,7 @@ export class StreamsList extends React.PureComponent<IProps> {
         }}
         scroll={{ y: height }}
         size='small'
+        loading={loading}
         onRow={stream => ({ onClick: () => onRowPress(stream) })}
       />
     )
@@ -37,7 +38,7 @@ export class StreamsList extends React.PureComponent<IProps> {
         width: '20%',
         title: 'Time',
         render: (_, stream) => <StreamTime stream={stream} />,
-        sorter: (streamA, streamB) => streamA.start_time - streamB.start_time
+        sorter: (streamA, streamB) => streamA.end_time - streamB.end_time
       },
       {
         width: '12%',
@@ -66,5 +67,6 @@ interface IProps {
   height: number
   streams: IStreamNoPayload[]
   protocols: string[]
+  loading: boolean
   onRowPress: (stream: IStreamNoPayload) => void
 }

@@ -163,7 +163,10 @@ export class Streams extends React.Component<{}, IState> {
         lastTimestamp: newTimestamp,
         streams: mergedStreams,
         streamsProtocols: mergedStreamsProtocols
-      }))
+      }), () => {
+        // Update search results
+        this.onSearchSubmit()
+      })
     } catch {
       notification.error({
         placement: 'bottomRight',

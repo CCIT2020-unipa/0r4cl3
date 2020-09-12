@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import ReactResizeDetector from 'react-resize-detector'
-import { PageHeader, Layout, Input, Tooltip, Typography, Row, Col, notification } from 'antd'
+import { PageHeader, Layout, Form, Input, Switch, Tooltip, Typography, Row, Col, notification } from 'antd'
 import { CloseCircleTwoTone, CloseOutlined, DisconnectOutlined } from '@ant-design/icons'
 const { Title, Text } = Typography
 const { Content } = Layout
@@ -30,6 +30,7 @@ export class Streams extends React.Component<{}, IState> {
 
   state = {
     query: '',
+    queryUseRegexp: false,
     tableHeight: 0,
     lastTimestamp: 0,
     streams: [],
@@ -45,6 +46,7 @@ export class Streams extends React.Component<{}, IState> {
   render(): JSX.Element {
     const {
       query,
+      queryUseRegexp,
       tableHeight,
       streams,
       streamsProtocols,
@@ -69,10 +71,16 @@ export class Streams extends React.Component<{}, IState> {
             <PageHeader title='0r4cl3' extra={[
               <PacketSnifferStatus key='1' />
             ]}>
+              <Form>
+                <Form.Item style={{ marginBottom: 8 }} label='Use RegExp'>
+                  <Switch checked={queryUseRegexp} onChange={this.onUseRegExpChange} />
+                </Form.Item>
+              </Form>
+
               <Search
                 value={query}
                 onChange={this.onSearchChange}
-                placeholder='Filter streams by their content'
+                placeholder={`Filter streams by their content (using ${queryUseRegexp ? 'regular expressions' : 'full-text search'})`}
                 onSearch={this.onSearchSubmit}
                 enterButton
                 suffix={
@@ -200,18 +208,22 @@ export class Streams extends React.Component<{}, IState> {
   /**
    * Search bar-related methods
    */
+  private onUseRegExpChange = (): void => {
+    this.setState(prevState => ({ queryUseRegexp: !prevState.queryUseRegexp }))
+  }
+
   private onSearchChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const query = event.target.value
     this.setState(() => ({ query }))
   }
 
   private onSearchSubmit = (): void => {
-    const { query } = this.state
+    const { query, queryUseRegexp } = this.state
 
     // Skip if query is empty
     if (query.length === 0) return;
 
-    requestStreamsByContent(query)
+    requestStreamsByContent(query, queryUseRegexp ? 'regexp' : 'fulltext')
       .then(({ streams, protocols }) => {
         this.setState(() => ({
           filteredStreams: streams,
@@ -231,6 +243,7 @@ export class Streams extends React.Component<{}, IState> {
 
 interface IState {
   query: string
+  queryUseRegexp: boolean
   tableHeight: number
   lastTimestamp: number
   streams: IStreamNoPayload[]

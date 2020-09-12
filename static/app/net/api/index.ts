@@ -4,14 +4,18 @@ export const apiUtils = { mergeStreams, mergeProtocols }
 export const requestStreams = async (timestamp: number): Promise<IStreamsResponse> =>
   (await fetch(`/api/streams?after=${timestamp}`)).json()
 
-export const requestStreamsByContent = async (query: string): Promise<IStreamsResponse> =>
-  (await fetch(`/api/streams?contains=${query}`)).json()
+export const requestStreamsByContent = async (query: string, queryMode: QueryMode): Promise<IStreamsResponse> =>
+  (await fetch(`/api/streams?query=${query}&mode=${queryMode}`)).json()
 
 export const requestStreamDetails = async (streamID: number): Promise<IStreamWithPayload> =>
   (await fetch(`/api/streams/${streamID}`)).json()
 
 export const requestPacketSnifferStatus = async (): Promise<IPacketSnifferStatusResponse> =>
   (await fetch('/api/sniffer/status')).json()
+
+type QueryMode =
+  | 'fulltext'
+  | 'regexp'
 
 interface IStreamsResponse {
   streams: IStreamNoPayload[]

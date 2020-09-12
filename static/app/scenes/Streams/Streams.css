@@ -7,3 +7,16 @@
   margin: 24px 16px;
   overflow: initial;
 }
+
+.Notification-container {
+  background-color: #FF4D4F;
+}
+
+.Notification-message,
+.Notification-icon {
+  color: #FAFAFA !important;
+}
+
+.Notification-description {
+  color: #F5F5F5 !important;
+}

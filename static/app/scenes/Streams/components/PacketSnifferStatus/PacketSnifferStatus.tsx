@@ -50,9 +50,9 @@ export class PacketSnifferStatus extends React.Component<{}, IState> {
   private fetchStatus = async (): Promise<void> => {
     try {
       const { online } = await requestPacketSnifferStatus()
-      this.setState((_, __) => ({ online }))
+      this.setState(() => ({ online }))
     } catch {
-      this.setState((_, __) => ({ online: false }))
+      this.setState(() => ({ online: false }))
     }
   }
 }

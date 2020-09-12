@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from .api import streams, sniffer
+from .api import streams, sniffer, auth
 from os import path
 import os
 import atexit
@@ -14,6 +14,7 @@ DB_PATH = './data.db'
 app = Flask(__name__, static_folder=STATIC_FOLDER_PATH)
 app.register_blueprint(streams, url_prefix='/api')
 app.register_blueprint(sniffer, url_prefix='/api')
+app.register_blueprint(auth, url_prefix='/api')
 
 @app.route('/', defaults={ 'path': '' })
 @app.route('/<path:path>')
@@ -30,6 +31,10 @@ def on_program_exit():
 
 
 if __name__ == '__main__':
+  if 'ACCESS_TOKEN' not in os.environ:
+    print('this server requires the environment variable "ACCESS_TOKEN" to be set in order to authenticate users')
+    exit(1)
+
   if os.geteuid() != 0:
     print('this server requires root privileges to run')
     exit(1)

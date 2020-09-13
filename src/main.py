@@ -8,7 +8,6 @@ from .services.packet_sniffer import PacketSniffer
 from .services.sqlite_database import SQLiteDatabase
 
 STATIC_FOLDER_PATH = path.join(path.dirname(__file__), '../static')
-SNIFFER_INTERFACE = 'en1'
 DB_PATH = './data.db'
 
 app = Flask(__name__, static_folder=STATIC_FOLDER_PATH)
@@ -32,11 +31,15 @@ def on_program_exit():
 
 if __name__ == '__main__':
   if 'ACCESS_TOKEN' not in os.environ:
-    print('this server requires the environment variable "ACCESS_TOKEN" to be set in order to authenticate users')
+    print('0r4cl3 requires the environment variable "ACCESS_TOKEN" to be set in order to authenticate users')
+    exit(1)
+
+  if 'SNIFFER_INTERFACE' not in os.environ:
+    print('0r4cl3 requires the environment variable "SNIFFER_INTERFACE" to be set in order to capture network traffic')
     exit(1)
 
   if os.geteuid() != 0:
-    print('this server requires root privileges to run')
+    print('0r4cl3 requires root privileges to run')
     exit(1)
 
   # Perform DB setup operations
@@ -46,7 +49,7 @@ if __name__ == '__main__':
   atexit.register(on_program_exit)
 
   # Start the packet sniffer service
-  PacketSniffer().start(SNIFFER_INTERFACE)
+  PacketSniffer().start(os.environ['SNIFFER_INTERFACE'])
 
   # Start flask backend
   app.run()

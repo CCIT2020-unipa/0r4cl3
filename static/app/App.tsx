@@ -1,21 +1,12 @@
 import * as React from 'react'
-import {
-  BrowserRouter,
-  Switch,
-  Route
-} from 'react-router-dom'
 
+import { Auth } from './scenes/Auth'
 import { Streams } from './scenes/Streams'
 
-export const App: React.SFC = () => (
-  <BrowserRouter>
-    <Switch>
-      <Route path='/streams'>
-        <Streams />
-      </Route>
-      <Route path='/'>
-        <h1>I mean, hi</h1>
-      </Route>
-    </Switch>
-  </BrowserRouter>
-)
+export const App: React.FC = () => {
+  const [accessToken, setAccessToken] = React.useState<string | null>(null)
+
+  return accessToken === null
+    ? <Auth setAccessToken={accessToken => setAccessToken(accessToken)} />
+    : <Streams accessToken={accessToken} />
+}

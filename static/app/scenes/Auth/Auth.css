@@ -1,0 +1,13 @@
+.Auth-container {
+  height: 100%;
+  width: 100%;
+}
+
+.Auth-content {
+  display: flex;
+  align-items: center;
+}
+
+.Auth-content_form {
+  flex: 1;
+}

@@ -1,0 +1,12 @@
+.Notification-error_container {
+  background-color: #FF4D4F;
+}
+
+.Notification-error_message,
+.Notification-error_icon {
+  color: #FAFAFA !important;
+}
+
+.Notification-error_description {
+  color: #F5F5F5 !important;
+}

@@ -1,17 +1,22 @@
 import { mergeStreams, mergeProtocols } from './utils'
 export const apiUtils = { mergeStreams, mergeProtocols }
 
-export const requestStreams = async (timestamp: number): Promise<IStreamsResponse> =>
-  (await fetch(`/api/streams?after=${timestamp}`)).json()
+export const requestStreams = async (accessToken: string, timestamp: number): Promise<IStreamsResponse> =>
+  (await fetch(`/api/streams?access_token=${accessToken}&after=${timestamp}`)).json()
 
-export const requestStreamsByContent = async (query: string, queryMode: QueryMode): Promise<IStreamsResponse> =>
-  (await fetch(`/api/streams?query=${query}&mode=${queryMode}`)).json()
+export const requestStreamsByContent = async (accessToken: string, query: string, queryMode: QueryMode): Promise<IStreamsResponse> =>
+  (await fetch(`/api/streams?access_token=${accessToken}&query=${query}&mode=${queryMode}`)).json()
 
-export const requestStreamDetails = async (streamID: number): Promise<IStreamWithPayload> =>
-  (await fetch(`/api/streams/${streamID}`)).json()
+export const requestStreamDetails = async (accessToken: string, streamID: number): Promise<IStreamWithPayload> =>
+  (await fetch(`/api/streams/${streamID}?access_token=${accessToken}`)).json()
 
-export const requestPacketSnifferStatus = async (): Promise<IPacketSnifferStatusResponse> =>
-  (await fetch('/api/sniffer/status')).json()
+export const requestPacketSnifferStatus = async (accessToken: string): Promise<IPacketSnifferStatusResponse> =>
+  (await fetch(`/api/sniffer/status?access_token=${accessToken}`)).json()
+
+export const login = async (accessToken: string): Promise<boolean> => {
+  const res = await fetch(`/api/auth/status?access_token=${accessToken}`)
+  return res.status !== 401
+}
 
 type QueryMode =
   | 'fulltext'

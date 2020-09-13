@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import ReactResizeDetector from 'react-resize-detector'
-import { PageHeader, Layout, Form, Input, Switch, Tooltip, Typography, Row, Col, notification } from 'antd'
-import { CloseCircleTwoTone, CloseOutlined, DisconnectOutlined } from '@ant-design/icons'
-const { Title, Text } = Typography
+import { PageHeader, Layout, Form, Input, Switch, Tooltip, Row, Col } from 'antd'
+import { CloseCircleTwoTone } from '@ant-design/icons'
 const { Content } = Layout
 const { Search } = Input
 import './Streams.css'
@@ -11,6 +10,7 @@ import './Streams.css'
 import { PacketSnifferStatus } from './components/PacketSnifferStatus'
 import { StreamsList } from '../../components/StreamsList'
 import { StreamDetails } from '../../components/StreamDetails'
+import { showError } from '../../components/Notification'
 
 import {
   IStreamNoPayload,
@@ -24,7 +24,7 @@ import {
 const STREAMS_UPDATE_INTERVAL_MS = 30000
 const RESIZE_DETECTOR_REFRESH_RATE_MS = 1250
 
-export class Streams extends React.Component<{}, IState> {
+export class Streams extends React.Component<IProps, IState> {
   private m_ContentRef: React.Component | null = null
   private m_TimeoutID?: NodeJS.Timeout
 
@@ -44,6 +44,7 @@ export class Streams extends React.Component<{}, IState> {
   }
 
   render(): JSX.Element {
+    const { accessToken } = this.props
     const {
       query,
       queryUseRegexp,
@@ -69,7 +70,7 @@ export class Streams extends React.Component<{}, IState> {
         {() => (
           <Layout className='Streams-container'>
             <PageHeader title='0r4cl3' extra={[
-              <PacketSnifferStatus key='1' />
+              <PacketSnifferStatus key='1' accessToken={accessToken} />
             ]}>
               <Form>
                 <Form.Item style={{ marginBottom: 8 }} label='Use RegExp'>
@@ -154,11 +155,12 @@ export class Streams extends React.Component<{}, IState> {
   }
 
   private fetchStreams = (): void => {
+    const { accessToken } = this.props
     const { lastTimestamp, streams, streamsProtocols } = this.state
 
     this.setState(() => ({ streamsLoading: true }), async () => {
       try {
-        const { streams: fetchedStreams, protocols: fetchedStreamsProtocols } = await requestStreams(lastTimestamp)
+        const { streams: fetchedStreams, protocols: fetchedStreamsProtocols } = await requestStreams(accessToken, lastTimestamp)
 
         // Find the timestamp of the last updated stream
         const newTimestamp = fetchedStreams.length > 0
@@ -181,27 +183,32 @@ export class Streams extends React.Component<{}, IState> {
           this.onSearchSubmit()
         })
       } catch {
-        notification.error({
-          placement: 'bottomRight',
-          className: 'Notification-container',
-          message: <Title className='Notification-message' level={5}>Cannot connect to 0r4cl3 server</Title>,
-          description: <Text className='Notification-description'>Make sure you are connected to the internet and the server is up and running</Text>,
-          icon: <DisconnectOutlined className='Notification-icon' />,
-          closeIcon: <CloseOutlined className='Notification-icon' />
-        })
+        showError(
+          'Cannot connect to 0r4cl3 server',
+          'Make sure you are connected to the internet and the server is up and running'
+        )
+        this.setState(() => ({ streamsLoading: false }))
       }
     })
   }
 
   private fetchStreamDetails = (stream: IStreamNoPayload): void => {
+    const { accessToken } = this.props
+
     // Skip if details for the requested stream have already been rendered
     if (this.state.focusedStream?.rowid === stream.rowid) return
 
-    this.setState(() => ({ focusedStreamLoading: true, focusedStream: null }), () => {
-      requestStreamDetails(stream.rowid)
-        .then(streamDetails => {
-          this.setState(() => ({ focusedStreamLoading: false, focusedStream: streamDetails }))
-        })
+    this.setState(() => ({ focusedStreamLoading: true, focusedStream: null }), async () => {
+      try {
+        const streamDetails = await requestStreamDetails(accessToken, stream.rowid)
+        this.setState(() => ({ focusedStreamLoading: false, focusedStream: streamDetails }))
+      } catch {
+        showError(
+          'Cannot connect to 0r4cl3 server',
+          'Make sure you are connected to the internet and the server is up and running'
+        )
+        this.setState(() => ({ focusedStreamLoading: false }))
+      }
     })
   }
 
@@ -217,19 +224,22 @@ export class Streams extends React.Component<{}, IState> {
     this.setState(() => ({ query }))
   }
 
-  private onSearchSubmit = (): void => {
+  private onSearchSubmit = async (): Promise<void> => {
+    const { accessToken } = this.props
     const { query, queryUseRegexp } = this.state
 
     // Skip if query is empty
     if (query.length === 0) return;
 
-    requestStreamsByContent(query, queryUseRegexp ? 'regexp' : 'fulltext')
-      .then(({ streams, protocols }) => {
-        this.setState(() => ({
-          filteredStreams: streams,
-          filteredStreamsProtocols: protocols
-        }))
-      })
+    try {
+      const { streams, protocols } = await requestStreamsByContent(accessToken, query, queryUseRegexp ? 'regexp' : 'fulltext')
+      this.setState(() => ({ filteredStreams: streams, filteredStreamsProtocols: protocols }))
+    } catch {
+      showError(
+        'Cannot connect to 0r4cl3 server',
+        'Make sure you are connected to the internet and the server is up and running'
+      )
+    }
   }
 
   private onSearchReset = (): void => {
@@ -239,6 +249,10 @@ export class Streams extends React.Component<{}, IState> {
       filteredStreamsProtocols: null
     }))
   }
+}
+
+interface IProps {
+  accessToken: string
 }
 
 interface IState {

@@ -7,7 +7,7 @@ import { requestPacketSnifferStatus } from '../../../../net/api'
 
 const STATUS_UPDATE_INTERVAL_MS = 10000
 
-export class PacketSnifferStatus extends React.Component<{}, IState> {
+export class PacketSnifferStatus extends React.Component<IProps, IState> {
   private m_TimeoutID?: NodeJS.Timeout
 
   state = {
@@ -48,13 +48,19 @@ export class PacketSnifferStatus extends React.Component<{}, IState> {
   }
 
   private fetchStatus = async (): Promise<void> => {
+    const { accessToken } = this.props
+
     try {
-      const { online } = await requestPacketSnifferStatus()
+      const { online } = await requestPacketSnifferStatus(accessToken)
       this.setState(() => ({ online }))
     } catch {
       this.setState(() => ({ online: false }))
     }
   }
+}
+
+interface IProps {
+  accessToken: string
 }
 
 interface IState {

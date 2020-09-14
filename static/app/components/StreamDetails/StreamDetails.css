@@ -2,6 +2,10 @@
   width: 100%;
 }
 
+.StreamDetails-card_switch {
+  margin: 0;
+}
+
 .StreamDetails-fragments_container {
   height: 100%;
   margin: 0 !important;

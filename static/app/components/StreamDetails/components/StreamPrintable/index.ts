@@ -1,1 +1,0 @@
-export { StreamPrintable } from './StreamPrintable'

@@ -5,7 +5,7 @@ import { ColumnsType } from 'antd/lib/table'
 import { StreamTime } from './components/StreamTime'
 import { StreamHosts } from './components/StreamHosts'
 
-import { IStreamNoPayload } from '../../net/api'
+import { IReconstructedStream } from '../../net/api'
 
 export class StreamsList extends React.PureComponent<IProps> {
   render(): JSX.Element {
@@ -13,7 +13,7 @@ export class StreamsList extends React.PureComponent<IProps> {
 
     return (
       <Table
-        rowKey={stream => stream.rowid}
+        rowKey={stream => stream.stream_no}
         dataSource={streams}
         columns={this.computeColumns()}
         pagination={{
@@ -30,7 +30,7 @@ export class StreamsList extends React.PureComponent<IProps> {
     )
   }
 
-  private computeColumns = (): ColumnsType<IStreamNoPayload> => {
+  private computeColumns = (): ColumnsType<IReconstructedStream> => {
     const { protocols } = this.props
 
     return [
@@ -38,7 +38,7 @@ export class StreamsList extends React.PureComponent<IProps> {
         width: '20%',
         title: 'Time',
         render: (_, stream) => <StreamTime stream={stream} />,
-        sorter: (streamA, streamB) => streamA.end_time - streamB.end_time
+        sorter: (streamA, streamB) => streamA.last_updated - streamB.last_updated
       },
       {
         width: '12%',
@@ -51,9 +51,9 @@ export class StreamsList extends React.PureComponent<IProps> {
       {
         width: '10%',
         title: 'Length',
-        dataIndex: 'data_length_string',
+        dataIndex: 'size_str',
         ellipsis: true,
-        sorter: (streamA, streamB) => streamA.data_length - streamB.data_length
+        sorter: (streamA, streamB) => streamA.size - streamB.size
       },
       {
         title: 'Hosts',
@@ -65,8 +65,8 @@ export class StreamsList extends React.PureComponent<IProps> {
 
 interface IProps {
   height: number
-  streams: IStreamNoPayload[]
+  streams: IReconstructedStream[]
   protocols: string[]
   loading: boolean
-  onRowPress: (stream: IStreamNoPayload) => void
+  onRowPress: (stream: IReconstructedStream) => void
 }

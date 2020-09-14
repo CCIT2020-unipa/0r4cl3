@@ -95,10 +95,27 @@ def __streams():
 @streams.route('/streams/<int:stream_no>')
 @auth_utils.auth_middleware
 def __stream_details(stream_no):
+  # Fetch stream
+  db_cursor = SQLiteDatabase().execute('''
+    SELECT OldestNewestStreamFragments.stream_no AS stream_no,
+           OldestNewestStreamFragments.newest_timestamp AS last_updated,
+           protocols,
+           src_ip,
+           src_port,
+           dst_ip,
+           dst_port,
+           BLOB_SIZE(data) AS size,
+           BLOB_SIZE_STR(data) AS size_str
+    FROM StreamFragments INNER JOIN OldestNewestStreamFragments ON
+          StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
+          StreamFragments.timestamp = OldestNewestStreamFragments.oldest_timestamp
+    WHERE OldestNewestStreamFragments.stream_no = ?
+  ''', stream_no)
+  fetched_stream = db_cursor.fetchone()
+
   # Fetch stream fragments
   db_cursor = SQLiteDatabase().execute('''
     SELECT timestamp,
-           protocols,
            src_ip,
            src_port,
            dst_ip,
@@ -108,6 +125,9 @@ def __stream_details(stream_no):
     WHERE stream_no = ?
     ORDER BY timestamp ASC
   ''', stream_no)
-
   fetched_stream_fragments = db_cursor.fetchall()
-  return { 'fragments': fetched_stream_fragments }
+
+  return {
+    'stream': fetched_stream,
+    'fragments': fetched_stream_fragments
+  }

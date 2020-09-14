@@ -1,30 +1,23 @@
 import * as React from 'react'
-import { Card } from 'antd'
-import { CardTabListType } from 'antd/lib/card'
+import { Card, Timeline } from 'antd'
 import './StreamDetails.css'
 
 import { NoSelection } from './components/NoSelection'
-import { StreamPrintable } from './components/StreamPrintable'
-import { StreamHexdump } from './components/StreamHexdump'
+import { StreamFragment } from './components/StreamFragment'
 
-import { IStreamWithPayload } from '../../net/api'
+import { IStreamDetailsResponse } from '../../net/api'
 
-const TABS_LIST: CardTabListType[] = [
-  { key: 'printable', tab: 'Printable data' },
-  { key: 'hexdump', tab: 'Hexdump' }
-]
-
-const TABS: ITabs = {
-  printable: (_: number, stream: IStreamWithPayload) => <StreamPrintable stream={stream} />,
-  hexdump: (width: number, stream: IStreamWithPayload) => <StreamHexdump width={width} stream={stream} />
-}
-
-export const StreamDetails: React.SFC<IProps> = ({ stream, loading, dimensions }) => {
-  const [selectedTab, setSelectedTab] = React.useState('printable')
-
-  if (!stream) {
+export const StreamDetails: React.SFC<IProps> = ({ streamDetails, loading, dimensions }) => {
+  if (!streamDetails) {
     return <NoSelection height={dimensions.height} loading={loading} />
   }
+
+  const {
+    src_ip: srcIP,
+    src_port: srcPort,
+    dst_ip: dstIP,
+    dst_port: dstPort
+  } = streamDetails.stream
 
   return (
     <Card
@@ -34,25 +27,28 @@ export const StreamDetails: React.SFC<IProps> = ({ stream, loading, dimensions }
         flexDirection: 'column'
       }}
       className='StreamDetails-card'
-      title={`Stream #${stream.stream_no} details`}
-      tabList={TABS_LIST}
-      activeTabKey={selectedTab}
-      onTabChange={tab => setSelectedTab(tab)}
+      title={`Stream #${streamDetails.stream.stream_no} details`}
     >
-      {TABS[selectedTab](dimensions.width, stream)}
+      <div className='StreamDetails-fragments_container'>
+        <Timeline>
+          {streamDetails.fragments.map((streamFragment, index) => (
+            <StreamFragment
+              streamFragment={streamFragment}
+              srcIP={srcIP}
+              srcPort={srcPort}
+              dstIP={dstIP}
+              dstPort={dstPort}
+              key={index}
+            />
+          ))}
+        </Timeline>
+      </div>
     </Card>
   )
 }
 
 interface IProps {
-  stream: IStreamWithPayload | null
+  streamDetails: IStreamDetailsResponse | null
   loading: boolean
-  dimensions: {
-    height: number
-    width: number
-  }
-}
-
-interface ITabs {
-  [tab: string]: (width: number, stream: IStreamWithPayload) => JSX.Element
+  dimensions: { height: number, width: number }
 }

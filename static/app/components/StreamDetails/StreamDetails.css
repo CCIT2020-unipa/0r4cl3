@@ -1,3 +1,11 @@
 .StreamDetails-card {
   width: 100%;
 }
+
+.StreamDetails-fragments_container {
+  height: 100%;
+  margin: 0 !important;
+  padding-top: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}

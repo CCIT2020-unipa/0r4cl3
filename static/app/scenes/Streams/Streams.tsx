@@ -13,8 +13,8 @@ import { StreamDetails } from '../../components/StreamDetails'
 import { showError } from '../../components/Notification'
 
 import {
-  IStreamNoPayload,
-  IStreamWithPayload,
+  IReconstructedStream,
+  IStreamDetailsResponse,
   requestStreams,
   requestStreamsByContent,
   requestStreamDetails,
@@ -38,7 +38,7 @@ export class Streams extends React.Component<IProps, IState> {
     streamsLoading: true,
     filteredStreams: null,
     filteredStreamsProtocols: null,
-    focusedStream: null as IStreamWithPayload | null,
+    focusedStream: null,
     focusedStreamLoading: false,
     focusedStreamDimensions: { height: 0, width: 0 }
   }
@@ -105,7 +105,7 @@ export class Streams extends React.Component<IProps, IState> {
                 </Col>
                 <Col span={15} style={{ paddingLeft: 40 }}>
                   <StreamDetails
-                    stream={focusedStream}
+                    streamDetails={focusedStream}
                     dimensions={focusedStreamDimensions}
                     loading={focusedStreamLoading}
                   />
@@ -130,7 +130,7 @@ export class Streams extends React.Component<IProps, IState> {
       - 24 // Pagination height
       - 32 // Top and bottom pagination margins
     const newFocusedStreamHeight = content.clientHeight
-      - 98 // Card header
+      - 58 // Card header
 
     this.setState(() => ({
       tableHeight: newTableHeight,
@@ -164,7 +164,7 @@ export class Streams extends React.Component<IProps, IState> {
 
         // Find the timestamp of the last updated stream
         const newTimestamp = fetchedStreams.length > 0
-          ? Math.max(...fetchedStreams.map(stream => stream.end_time))
+          ? Math.max(...fetchedStreams.map(stream => stream.last_updated))
           : lastTimestamp
 
         // Merge current and fetched streams
@@ -192,16 +192,13 @@ export class Streams extends React.Component<IProps, IState> {
     })
   }
 
-  private fetchStreamDetails = (stream: IStreamNoPayload): void => {
+  private fetchStreamDetails = (stream: IReconstructedStream): void => {
     const { accessToken } = this.props
-
-    // Skip if details for the requested stream have already been rendered
-    if (this.state.focusedStream?.rowid === stream.rowid) return
 
     this.setState(() => ({ focusedStreamLoading: true, focusedStream: null }), async () => {
       try {
-        const streamDetails = await requestStreamDetails(accessToken, stream.rowid)
-        this.setState(() => ({ focusedStreamLoading: false, focusedStream: streamDetails }))
+        const focusedStream = await requestStreamDetails(accessToken, stream.stream_no)
+        this.setState(() => ({ focusedStreamLoading: false, focusedStream }))
       } catch {
         showError(
           'Cannot connect to 0r4cl3 server',
@@ -260,12 +257,12 @@ interface IState {
   queryUseRegexp: boolean
   tableHeight: number
   lastTimestamp: number
-  streams: IStreamNoPayload[]
+  streams: IReconstructedStream[]
   streamsProtocols: string[]
   streamsLoading: boolean
-  filteredStreams: IStreamNoPayload[] | null
+  filteredStreams: IReconstructedStream[] | null
   filteredStreamsProtocols: string[] | null
-  focusedStream: IStreamWithPayload | null
+  focusedStream: IStreamDetailsResponse | null
   focusedStreamLoading: boolean
   focusedStreamDimensions: { height: number, width: number }
 }

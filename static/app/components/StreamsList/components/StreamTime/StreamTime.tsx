@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Tooltip } from 'antd'
 
-import { IStreamNoPayload } from '../../../../net/api'
+import { IReconstructedStream } from '../../../../net/api'
 
 const getDatetime = (timestamp: number): IDatetime => {
   const datetime = new Date(Math.floor(timestamp / 1000))
@@ -20,7 +20,7 @@ const getDatetime = (timestamp: number): IDatetime => {
 }
 
 export const StreamTime: React.SFC<IProps> = ({ stream }) => {
-  const { date, time } = getDatetime(stream.end_time)
+  const { date, time } = getDatetime(stream.last_updated)
   const tooltip = <span>Date: {date}</span>
 
   return (
@@ -31,7 +31,7 @@ export const StreamTime: React.SFC<IProps> = ({ stream }) => {
 }
 
 interface IProps {
-  stream: IStreamNoPayload
+  stream: IReconstructedStream
 }
 
 interface IDatetime {

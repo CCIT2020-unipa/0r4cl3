@@ -2,7 +2,7 @@ import * as React from 'react'
 import { hexy } from 'hexy'
 import './StreamHexdump.css'
 
-import { IStreamWithPayload } from '../../../../net/api'
+import { IStreamFragment } from '../../../../net/api'
 
 const computeWidth = (screenWidth: number): number => {
   if (screenWidth < 1200) {
@@ -16,13 +16,14 @@ const computeWidth = (screenWidth: number): number => {
   }
 }
 
-export const StreamHexdump: React.SFC<IProps> = ({ width, stream }) => (
+export const StreamHexdump: React.SFC<IProps> = ({ width, streamFragments }) => (
   <pre className='StreamHexdump-content'>
-    {hexy(stream.data_printable, { width: computeWidth(width) })}
+    {/* TODO: restore hexdump */}
+    {/* {hexy(stream.data_printable, { width: computeWidth(width) })} */}
   </pre>
 )
 
 interface IProps {
   width: number
-  stream: IStreamWithPayload
+  streamFragments: IStreamFragment[]
 }

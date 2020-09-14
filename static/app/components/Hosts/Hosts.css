@@ -1,0 +1,23 @@
+.Hosts-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.Hosts-host_container {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.Hosts-host_ip {
+  margin-right: 8px;
+}
+.Hosts-host_port {
+  margin: 0;
+}
+
+.Hosts-direction_container {
+  display: inline;
+  margin: 0 12px;
+}

@@ -86,12 +86,22 @@ def __streams():
     'protocols': protocols
   }
 
-# TODO: restore stream details route
-# @streams.route('/streams/<int:stream_id>')
-# @auth_utils.auth_middleware
-# def _stream_details(stream_id):
-#   # Remove the 'data_bytes' field from the response
-#   stream = SQLiteDatabase.execute('SELECT rowid, * FROM Streams WHERE rowid = ?', stream_id).fetchone()
-#   del stream['data_bytes']
-#
-#   return stream
+@streams.route('/streams/<int:stream_no>')
+@auth_utils.auth_middleware
+def __stream_details(stream_no):
+  # Fetch stream fragments
+  db_cursor = SQLiteDatabase().execute('''
+    SELECT timestamp,
+           protocols,
+           src_ip,
+           src_port,
+           dst_ip,
+           dst_port,
+           BLOB_TO_STR(data) AS data
+    FROM StreamFragments
+    WHERE stream_no = ?
+    ORDER BY timestamp ASC
+  ''', stream_no)
+
+  fetched_stream_fragments = db_cursor.fetchall()
+  return { 'fragments': fetched_stream_fragments }

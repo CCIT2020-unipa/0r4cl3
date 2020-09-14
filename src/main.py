@@ -49,8 +49,7 @@ if __name__ == '__main__':
   atexit.register(on_program_exit)
 
   # Start the packet sniffer service
-  # PacketSniffer().start(os.environ['SNIFFER_INTERFACE'])
+  PacketSniffer().start(os.environ['SNIFFER_INTERFACE'])
 
   # Start flask backend
-  app.run(debug=True)
-  # TODO: remove debug mode and restart packet sniffer
+  app.run()

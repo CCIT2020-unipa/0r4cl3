@@ -96,8 +96,8 @@ class SQLiteDatabase:
     ''')
 
     # Empty tables content
-    # db_cursor.execute('DELETE FROM StreamFragments')
-    # db_cursor.execute('DELETE FROM IndexedStreamFragments')
+    db_cursor.execute('DELETE FROM StreamFragments')
+    db_cursor.execute('DELETE FROM IndexedStreamFragments')
 
     # Close cursor
     db_connection.commit()

@@ -1,4 +1,4 @@
-from typing import Tuple, Any
+from typing import Any
 import sqlite3
 import re
 
@@ -45,54 +45,60 @@ class SQLiteDatabase:
     db_cursor = db_connection.cursor()
 
     # Setup the necessary tables
-    # Create the 'Streams' table
+    # Create the 'StreamFragments' table
     db_cursor.execute('''
-      CREATE TABLE IF NOT EXISTS Streams (
+      CREATE TABLE IF NOT EXISTS StreamFragments (
         stream_no INTEGER NOT NULL,
-        start_time INTEGER NOT NULL,
-        end_time INTEGER NOT NULL,
+        timestamp INTEGER NOT NULL,
         protocols TEXT NOT NULL,
-        host_a_ip TEXT NOT NULL,
-        host_a_port INTEGER NOT NULL,
-        host_b_ip TEXT NOT NULL,
-        host_b_port INTEGER NOT NULL,
-        data_length INTEGER NOT NULL,
-        data_length_string TEXT NOT NULL,
-        data_bytes BLOB NOT NULL,
-        data_printable TEXT NOT NULL
+        src_ip TEXT NOT NULL,
+        src_port TEXT NOT NULL,
+        dst_ip TEXT NOT NULL,
+        dst_port TEXT NOT NULL,
+        data BLOB NOT NULL
       )
     ''')
 
-    # Create the 'StreamsIndex' table to perform full-text queries
     db_cursor.execute('''
-      CREATE VIRTUAL TABLE IF NOT EXISTS StreamsIndex USING fts5(data_printable, tokenize=porter)
+      CREATE VIEW IF NOT EXISTS OldestNewestStreamFragments AS
+      SELECT stream_no,
+             MIN(timestamp) AS oldest_timestamp,
+             MAX(timestamp) AS newest_timestamp
+      FROM StreamFragments
+      GROUP BY stream_no
     ''')
 
-    # Keep 'Streams' and 'StreamsIndex' tables in sync using triggers
-    # Trigger on INSERT
-    db_cursor.execute('''
-      CREATE TRIGGER IF NOT EXISTS OnStreamsInsert AFTER INSERT ON Streams BEGIN
-        INSERT INTO StreamsIndex(rowid, data_printable) VALUES (new.rowid, new.data_printable);
-      END
-    ''')
-
-    # Trigger on UPDATE
-    db_cursor.execute('''
-      CREATE TRIGGER IF NOT EXISTS OnStreamsUpdate UPDATE OF data_printable ON Streams BEGIN
-        UPDATE StreamsIndex SET data_printable = new.data_printable WHERE rowid = old.rowid;
-      END
-    ''')
-
-    # Trigger on DELETE
-    db_cursor.execute('''
-      CREATE TRIGGER IF NOT EXISTS OnStreamsDelete AFTER DELETE ON Streams BEGIN
-        DELETE FROM StreamsIndex WHERE rowid = old.rowid;
-      END
-    ''')
+    # TODO: restore full-text searches support
+    # # Create the 'StreamsIndex' table to perform full-text queries
+    # db_cursor.execute('''
+    #   CREATE VIRTUAL TABLE IF NOT EXISTS StreamsIndex USING fts5(data_printable, tokenize=porter)
+    # ''')
+    #
+    # # Keep 'Streams' and 'StreamsIndex' tables in sync using triggers
+    # # Trigger on INSERT
+    # db_cursor.execute('''
+    #   CREATE TRIGGER IF NOT EXISTS OnStreamsInsert AFTER INSERT ON Streams BEGIN
+    #     INSERT INTO StreamsIndex(rowid, data_printable) VALUES (new.rowid, new.data_printable);
+    #   END
+    # ''')
+    #
+    # # Trigger on UPDATE
+    # db_cursor.execute('''
+    #   CREATE TRIGGER IF NOT EXISTS OnStreamsUpdate UPDATE OF data_printable ON Streams BEGIN
+    #     UPDATE StreamsIndex SET data_printable = new.data_printable WHERE rowid = old.rowid;
+    #   END
+    # ''')
+    #
+    # # Trigger on DELETE
+    # db_cursor.execute('''
+    #   CREATE TRIGGER IF NOT EXISTS OnStreamsDelete AFTER DELETE ON Streams BEGIN
+    #     DELETE FROM StreamsIndex WHERE rowid = old.rowid;
+    #   END
+    # ''')
 
     # Empty tables content
-    db_cursor.execute('DELETE FROM Streams')
-    db_cursor.execute('DELETE FROM StreamsIndex')
+    # db_cursor.execute('DELETE FROM StreamFragments')
+    # db_cursor.execute('DELETE FROM StreamsIndex')
 
     # Close cursor
     db_connection.commit()

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Tuple, Optional
 import multiprocessing
 import collections
 import pyshark
@@ -9,8 +9,11 @@ from ..services.sqlite_database import SQLiteDatabase
 IGNORED_PROTOCOLS = ('data', 'data-text-lines', 'gsm_abis_rsl', 'gsm_ipa', 'irc')
 StreamFragment = collections.namedtuple(
   'StreamFragment',
-  'stream_no timestamp protocols src_ip src_port dst_ip dst_port data'
+  'stream_no sub_stream_no timestamp protocols src_ip src_port dst_ip dst_port data'
 )
+
+class EmptyPayloadException(Exception):
+  pass
 
 class PacketSniffer:
   # Begin of singleton pattern
@@ -64,23 +67,45 @@ class PacketSniffer:
         if 'TCP' not in packet:
           continue
 
-        # Create a new stream fragment entry
-        stream_fragment = PacketSniffer.__parse_stream_fragment(packet)
-        SQLiteDatabase().execute(
-          'INSERT INTO StreamFragments VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-          stream_fragment.stream_no,
-          stream_fragment.timestamp,
-          stream_fragment.protocols,
-          stream_fragment.src_ip,
-          stream_fragment.src_port,
-          stream_fragment.dst_ip,
-          stream_fragment.dst_port,
-          stream_fragment.data
-        )
+        try:
+          # Create a new stream fragment entry
+          stream_fragment = PacketSniffer.__parse_stream_fragment(packet)
+          SQLiteDatabase().execute(
+            'INSERT INTO StreamFragments VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            stream_fragment.stream_no,
+            stream_fragment.sub_stream_no,
+            stream_fragment.timestamp,
+            stream_fragment.protocols,
+            stream_fragment.src_ip,
+            stream_fragment.src_port,
+            stream_fragment.dst_ip,
+            stream_fragment.dst_port,
+            stream_fragment.data
+          )
+        except EmptyPayloadException:
+          # Skip packets with empty payload
+          pass
     except KeyboardInterrupt:
       # Gracefully terminate the packet sniffer service
       print()
       print('keyboard interrupt received, ready to terminate packet sniffer process')
+
+  @staticmethod
+  def __latest_stream_fragment(stream_no: int) -> Tuple[int, str]:
+    db_cursor = SQLiteDatabase().execute('''
+      SELECT sub_stream_no,
+             src_ip
+      FROM StreamFragments INNER JOIN OldestNewestStreamFragments ON
+           StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
+           StreamFragments.timestamp = OldestNewestStreamFragments.newest_timestamp
+      WHERE OldestNewestStreamFragments.stream_no = ?
+    ''', stream_no)
+    fetched_stream_fragment = db_cursor.fetchone()
+
+    if fetched_stream_fragment is None:
+      return 0, ''
+    else:
+      return fetched_stream_fragment['sub_stream_no'], fetched_stream_fragment['src_ip']
 
   @staticmethod
   def __parse_stream_fragment(packet) -> StreamFragment:
@@ -99,12 +124,24 @@ class PacketSniffer:
     protocols = ':'.join(list(protocols))
 
     # Extract payload data
-    payload = bytes()
     if hasattr(packet['tcp'], 'payload'):
       payload = packet['tcp'].payload.binary_value
+    else:
+      raise EmptyPayloadException
+
+    # Extract stream number
+    stream_no = int(packet['tcp'].stream)
+
+    # Compute sub-stream number
+    latest_sub_stream_no, latest_src_ip = PacketSniffer.__latest_stream_fragment(stream_no)
+    if src_ip == latest_src_ip:
+      sub_stream_no = latest_sub_stream_no
+    else:
+      sub_stream_no = latest_sub_stream_no + 1
 
     return StreamFragment(
-      stream_no=int(packet['tcp'].stream),
+      stream_no=stream_no,
+      sub_stream_no=sub_stream_no,
       timestamp=timestamp,
       protocols=protocols,
       src_ip=src_ip,

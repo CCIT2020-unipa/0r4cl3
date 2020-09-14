@@ -115,16 +115,15 @@ def __stream_details(stream_no):
 
   # Fetch stream fragments
   db_cursor = SQLiteDatabase().execute('''
-    SELECT timestamp,
+    SELECT MIN(timestamp) AS timestamp,
            src_ip,
            src_port,
            dst_ip,
            dst_port,
-           BLOB_TO_STR(data) AS data
+           BLOB_TO_STR(BLOB_CONCAT(data)) AS data
     FROM StreamFragments
-    WHERE LENGTH(data) > 0 AND
-          stream_no = ?
-    ORDER BY timestamp ASC
+    WHERE stream_no = ?
+    GROUP BY sub_stream_no
   ''', stream_no)
   fetched_stream_fragments = db_cursor.fetchall()
 

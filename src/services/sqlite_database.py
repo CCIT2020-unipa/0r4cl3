@@ -45,6 +45,7 @@ class SQLiteDatabase:
     db_cursor.execute('''
       CREATE TABLE IF NOT EXISTS StreamFragments (
         stream_no INTEGER NOT NULL,
+        sub_stream_no INTEGER NOT NULL,
         timestamp INTEGER NOT NULL,
         protocols TEXT NOT NULL,
         src_ip TEXT NOT NULL,

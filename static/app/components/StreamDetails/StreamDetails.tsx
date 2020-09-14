@@ -7,7 +7,7 @@ import { StreamFragment } from './components/StreamFragment'
 
 import { IStreamDetailsResponse } from '../../net/api'
 
-export const StreamDetails: React.SFC<IProps> = ({ streamDetails, loading, dimensions }) => {
+export const StreamDetails: React.FC<IProps> = ({ streamDetails, loading, dimensions }) => {
   if (!streamDetails) {
     return <NoSelection height={dimensions.height} loading={loading} />
   }

@@ -23,7 +23,7 @@ const authenticateUser = async (accessToken: string, setAccessToken: (accessToke
   }
 }
 
-export const Auth: React.SFC<IProps> = ({ setAccessToken }) => (
+export const Auth: React.FC<IProps> = ({ setAccessToken }) => (
   <Row className='Auth-container'>
     <Col span={8} />
     <Col className='Auth-content' span={8}>

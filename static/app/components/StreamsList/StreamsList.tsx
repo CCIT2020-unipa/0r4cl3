@@ -3,7 +3,7 @@ import { Table } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 
 import { StreamTime } from './components/StreamTime'
-import { StreamHosts } from './components/StreamHosts'
+import { Hosts } from '../../components/Hosts'
 
 import { IReconstructedStream } from '../../net/api'
 
@@ -57,7 +57,14 @@ export class StreamsList extends React.PureComponent<IProps> {
       },
       {
         title: 'Hosts',
-        render: (_, stream) => <StreamHosts stream={stream} />
+        render: (_, { src_ip, src_port, dst_ip, dst_port }) => <Hosts
+          srcIP={src_ip}
+          srcPort={src_port}
+          dstIP={dst_ip}
+          dstPort={dst_port}
+          direction='both'
+          alignToGrid
+        />
       }
     ]
   }

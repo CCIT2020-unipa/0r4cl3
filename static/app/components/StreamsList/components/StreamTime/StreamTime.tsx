@@ -19,7 +19,7 @@ const getDatetime = (timestamp: number): IDatetime => {
   }
 }
 
-export const StreamTime: React.SFC<IProps> = ({ stream }) => {
+export const StreamTime: React.FC<IProps> = ({ stream }) => {
   const { date, time } = getDatetime(stream.last_updated)
   const tooltip = <span>Date: {date}</span>
 

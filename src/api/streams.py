@@ -31,7 +31,9 @@ def __streams():
                src_ip,
                src_port,
                dst_ip,
-               dst_port
+               dst_port,
+               BLOB_SIZE(data) AS size,
+               BLOB_SIZE_STR(data) AS size_str
         FROM StreamFragments
         INNER JOIN OldestNewestStreamFragments ON
                    StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
@@ -51,7 +53,9 @@ def __streams():
                src_ip,
                src_port,
                dst_ip,
-               dst_port
+               dst_port,
+               BLOB_SIZE(data) AS size,
+               BLOB_SIZE_STR(data) AS size_str
         FROM StreamFragments INNER JOIN OldestNewestStreamFragments ON
              StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
              StreamFragments.timestamp = OldestNewestStreamFragments.oldest_timestamp
@@ -66,7 +70,9 @@ def __streams():
              src_ip,
              src_port,
              dst_ip,
-             dst_port
+             dst_port,
+             BLOB_SIZE(data) AS size,
+             BLOB_SIZE_STR(data) AS size_str
       FROM StreamFragments INNER JOIN OldestNewestStreamFragments ON
            StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
            StreamFragments.timestamp = OldestNewestStreamFragments.oldest_timestamp

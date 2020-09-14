@@ -2,13 +2,6 @@ from typing import Any
 import sqlite3
 import re
 
-
-def blob_to_str(data: bytes) -> str:
-  return data.decode('utf-8', 'ignore')
-
-def regexp(expression, item):
-  return re.compile(expression).search(item) is not None
-
 # Reference: https://docs.python.org/3/library/sqlite3.html#sqlite3.Connection.row_factory
 def dict_factory(cursor, row):
   d = {}
@@ -126,10 +119,12 @@ class SQLiteDatabase:
     db_cursor = db_connection.cursor()
 
     # Register REGEXP function (not present by default in SQLite)
-    db_connection.create_function('REGEXP', 2, regexp)
+    db_connection.create_function('REGEXP', 2, SQLiteDatabase.__regexp)
 
-    # Register BLOB_TO_STR function
-    db_connection.create_function('BLOB_TO_STR', 1, blob_to_str)
+    # Register BLOB-related functions
+    db_connection.create_function('BLOB_TO_STR', 1, SQLiteDatabase.__blob_to_str)
+    db_connection.create_function('BLOB_SIZE', 1, SQLiteDatabase.__blob_size)
+    db_connection.create_function('BLOB_SIZE_STR', 1, SQLiteDatabase.__blob_size_str)
 
     # Fetch values as dictionaries rather than tuples
     db_cursor.row_factory = dict_factory
@@ -139,3 +134,27 @@ class SQLiteDatabase:
     db_connection.commit()
 
     return db_cursor
+
+  @staticmethod
+  def __regexp(expression, item):
+    return re.compile(expression).search(item) is not None
+
+  @staticmethod
+  def __blob_to_str(data: bytes) -> str:
+    return data.decode('utf-8', 'ignore')
+
+  @staticmethod
+  def __blob_size(data: bytes) -> int:
+    return len(data)
+
+  @staticmethod
+  def __blob_size_str(data: bytes) -> str:
+    size = SQLiteDatabase.__blob_size(data)
+    suffix = 'B'
+
+    # Source: https://stackoverflow.com/a/1094933
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+      if abs(size) < 1024.0:
+        return '%3.1f%s%s' % (size, unit, suffix)
+      size /= 1024.0
+    return '%.1f%s%s' % (size, 'Y', suffix)

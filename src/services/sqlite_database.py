@@ -3,6 +3,9 @@ import sqlite3
 import re
 
 
+def blob_to_str(data: bytes) -> str:
+  return data.decode('utf-8', 'ignore')
+
 def regexp(expression, item):
   return re.compile(expression).search(item) is not None
 
@@ -121,6 +124,9 @@ class SQLiteDatabase:
 
     # Register REGEXP function (not present by default in SQLite)
     db_connection.create_function('REGEXP', 2, regexp)
+
+    # Register BLOB_TO_STR function
+    db_connection.create_function('BLOB_TO_STR', 1, blob_to_str)
 
     # Fetch values as dictionaries rather than tuples
     db_cursor.row_factory = dict_factory

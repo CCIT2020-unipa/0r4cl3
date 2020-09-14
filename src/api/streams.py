@@ -28,8 +28,19 @@ def __streams():
       return { 'error': 'not implemented yet' }, 500
     elif query_mode == 'regexp':
       # Fetch streams with payload that matches a given regular expression
-      # TODO: restore regexp searches support
-      return {'error': 'not implemented yet'}, 500
+      db_cursor = SQLiteDatabase().execute('''
+        SELECT OldestNewestStreamFragments.stream_no AS stream_no,
+               OldestNewestStreamFragments.newest_timestamp AS last_updated,
+               protocols,
+               src_ip,
+               src_port,
+               dst_ip,
+               dst_port
+        FROM StreamFragments INNER JOIN OldestNewestStreamFragments ON
+             StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
+             StreamFragments.timestamp = OldestNewestStreamFragments.oldest_timestamp
+        WHERE BLOB_TO_STR(data) REGEXP ?
+      ''', query)
   else:
     # Fetch streams modified after a given timestamp
     db_cursor = SQLiteDatabase().execute('''
@@ -83,24 +94,6 @@ def __streams():
 #       ''', query)
 #     elif query_mode == 'regexp':
 #       # Fetch streams with payload that matches a given regular expression
-#       db_cursor = SQLiteDatabase().execute('''
-#         SELECT rank,
-#                Streams.rowid,
-#                stream_no,
-#                start_time,
-#                end_time,
-#                protocols,
-#                host_a_ip,
-#                host_a_port,
-#                host_b_ip,
-#                host_b_port,
-#                data_length,
-#                data_length_string
-#         FROM Streams, StreamsIndex
-#         WHERE StreamsIndex.data_printable REGEXP ? AND
-#               Streams.rowid = StreamsIndex.rowid
-#         ORDER BY rank DESC
-#       ''', query)
 #   else:
 #     # Fetch streams modified after a given timestamp
 #

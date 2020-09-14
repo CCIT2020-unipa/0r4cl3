@@ -3,6 +3,15 @@
   height: 100%;
 }
 
+.Streams-search_options__container {
+  justify-content: flex-end;
+}
+
+.Streams_search_options_use__regexp {
+  margin: 0 !important;
+  margin-bottom: 6px !important;
+}
+
 .Streams-content {
   margin: 24px 16px;
   overflow: initial;

@@ -72,8 +72,8 @@ export class Streams extends React.Component<IProps, IState> {
             <PageHeader title='0r4cl3' extra={[
               <PacketSnifferStatus key='1' accessToken={accessToken} />
             ]}>
-              <Form>
-                <Form.Item style={{ marginBottom: 8 }} label='Use RegExp'>
+              <Form className='Streams-search_options__container' layout='inline' size='small'>
+                <Form.Item className='Streams_search_options_use__regexp' label='Use RegExp'>
                   <Switch checked={queryUseRegexp} onChange={this.onUseRegExpChange} />
                 </Form.Item>
               </Form>

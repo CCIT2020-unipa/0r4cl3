@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Tag } from 'antd'
+import { Typography, Tag } from 'antd'
+const { Text } = Typography
 import './InlineHosts.css'
 
 import { IProps } from '../../Hosts'
@@ -7,12 +8,12 @@ import { IProps } from '../../Hosts'
 export const InlineHosts: React.FC<IProps> = ({ srcIP, srcPort, dstIP, dstPort, direction }) => (
   <div className='InlineHosts-container'>
     <div className='InlineHosts-host_container'>
-      <span className='InlineHosts-host_ip'>{srcIP}</span>
+      <Text className='InlineHosts-host_ip'>{srcIP}</Text>
       <Tag className='InlineHosts-host_port' color='blue'>{srcPort}</Tag>
     </div>
 
     <div className='InlineHosts-direction_container'>
-      <span>
+      <Text>
         {(() => {
           switch (direction) {
             case 'both':
@@ -23,11 +24,11 @@ export const InlineHosts: React.FC<IProps> = ({ srcIP, srcPort, dstIP, dstPort, 
               return '⥪'
           }
         })()}
-      </span>
+      </Text>
     </div>
 
     <div className='InlineHosts-host_container'>
-      <span className='InlineHosts-host_ip'>{dstIP}</span>
+      <Text className='InlineHosts-host_ip'>{dstIP}</Text>
       <Tag className='InlineHosts-host_port' color='blue'>{dstPort}</Tag>
     </div>
   </div>

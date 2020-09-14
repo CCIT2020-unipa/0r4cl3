@@ -1,9 +1,8 @@
 import * as React from 'react'
-import { Tooltip } from 'antd'
+import { Typography, Tooltip } from 'antd'
+const { Text } = Typography
 
-import { IReconstructedStream } from '../../../../net/api'
-
-const getDatetime = (timestamp: number): IDatetime => {
+const timestampToDatetime = (timestamp: number): { date: string, time: string } => {
   const datetime = new Date(Math.floor(timestamp / 1000))
   const day = datetime.getDate().toString().padStart(2, '0')
   const month = datetime.getMonth().toString().padStart(2, '0')
@@ -19,22 +18,17 @@ const getDatetime = (timestamp: number): IDatetime => {
   }
 }
 
-export const StreamTime: React.FC<IProps> = ({ stream }) => {
-  const { date, time } = getDatetime(stream.last_updated)
+export const Datetime: React.FC<IProps> = ({ timestamp }) => {
+  const { date, time } = timestampToDatetime(timestamp)
   const tooltip = <span>Date: {date}</span>
 
   return (
     <Tooltip placement='topLeft' title={tooltip}>
-      <span>{time}</span>
+      <Text>{time}</Text>
     </Tooltip>
   )
 }
 
 interface IProps {
-  stream: IReconstructedStream
-}
-
-interface IDatetime {
-  date: string
-  time: string
+  timestamp: number
 }

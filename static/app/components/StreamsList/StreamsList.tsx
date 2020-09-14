@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Table } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 
-import { StreamTime } from './components/StreamTime'
+import { Datetime } from '../../components/Datetime'
 import { Hosts } from '../../components/Hosts'
 
 import { IReconstructedStream } from '../../net/api'
@@ -37,7 +37,7 @@ export class StreamsList extends React.PureComponent<IProps> {
       {
         width: '20%',
         title: 'Time',
-        render: (_, stream) => <StreamTime stream={stream} />,
+        render: (_, { last_updated }) => <Datetime timestamp={last_updated} />,
         sorter: (streamA, streamB) => streamA.last_updated - streamB.last_updated
       },
       {

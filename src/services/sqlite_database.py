@@ -71,37 +71,40 @@ class SQLiteDatabase:
       GROUP BY stream_no
     ''')
 
-    # TODO: restore full-text searches support
-    # # Create the 'StreamsIndex' table to perform full-text queries
-    # db_cursor.execute('''
-    #   CREATE VIRTUAL TABLE IF NOT EXISTS StreamsIndex USING fts5(data_printable, tokenize=porter)
-    # ''')
-    #
-    # # Keep 'Streams' and 'StreamsIndex' tables in sync using triggers
-    # # Trigger on INSERT
-    # db_cursor.execute('''
-    #   CREATE TRIGGER IF NOT EXISTS OnStreamsInsert AFTER INSERT ON Streams BEGIN
-    #     INSERT INTO StreamsIndex(rowid, data_printable) VALUES (new.rowid, new.data_printable);
-    #   END
-    # ''')
-    #
-    # # Trigger on UPDATE
-    # db_cursor.execute('''
-    #   CREATE TRIGGER IF NOT EXISTS OnStreamsUpdate UPDATE OF data_printable ON Streams BEGIN
-    #     UPDATE StreamsIndex SET data_printable = new.data_printable WHERE rowid = old.rowid;
-    #   END
-    # ''')
-    #
-    # # Trigger on DELETE
-    # db_cursor.execute('''
-    #   CREATE TRIGGER IF NOT EXISTS OnStreamsDelete AFTER DELETE ON Streams BEGIN
-    #     DELETE FROM StreamsIndex WHERE rowid = old.rowid;
-    #   END
-    # ''')
+    # Create the 'IndexedStreamFragments' table to perform full-text queries
+    db_cursor.execute('''
+      CREATE VIRTUAL TABLE IF NOT EXISTS IndexedStreamFragments USING fts5(
+        stream_no UNINDEXED,
+        data_str,
+        tokenize=porter
+      )
+    ''')
+
+    # Keep 'StreamFragments' and 'IndexedStreamFragments' tables in sync using triggers
+    # Trigger on INSERT
+    db_cursor.execute('''
+      CREATE TRIGGER IF NOT EXISTS OnStreamFragmentsInsert AFTER INSERT ON StreamFragments BEGIN
+        INSERT INTO IndexedStreamFragments(rowid, stream_no, data_str) VALUES (new.rowid, new.stream_no, BLOB_TO_STR(new.data));
+      END
+    ''')
+
+    # Trigger on UPDATE
+    db_cursor.execute('''
+      CREATE TRIGGER IF NOT EXISTS OnStreamFragmentsUpdate UPDATE OF data ON StreamFragments BEGIN
+        UPDATE IndexedStreamFragments SET data_str = BLOB_TO_STR(new.data) WHERE rowid = old.rowid;
+      END
+    ''')
+
+    # Trigger on DELETE
+    db_cursor.execute('''
+      CREATE TRIGGER IF NOT EXISTS OnStreamFragmentsDelete AFTER DELETE ON StreamFragments BEGIN
+        DELETE FROM IndexedStreamFragments WHERE rowid = old.rowid;
+      END
+    ''')
 
     # Empty tables content
     # db_cursor.execute('DELETE FROM StreamFragments')
-    # db_cursor.execute('DELETE FROM StreamsIndex')
+    # db_cursor.execute('DELETE FROM IndexedStreamFragments')
 
     # Close cursor
     db_connection.commit()

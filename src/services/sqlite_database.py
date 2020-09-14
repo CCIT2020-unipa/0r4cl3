@@ -154,7 +154,8 @@ class SQLiteDatabase:
 
   @staticmethod
   def __blob_to_str(data: bytes) -> str:
-    return data.decode('utf-8', 'ignore')
+    # Replace wrong bytes with '�' character
+    return data.decode('utf-8', 'replace')
 
   @staticmethod
   def __blob_size(stream_no: int) -> int:

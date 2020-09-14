@@ -122,7 +122,8 @@ def __stream_details(stream_no):
            dst_port,
            BLOB_TO_STR(data) AS data
     FROM StreamFragments
-    WHERE stream_no = ?
+    WHERE LENGTH(data) > 0 AND
+          stream_no = ?
     ORDER BY timestamp ASC
   ''', stream_no)
   fetched_stream_fragments = db_cursor.fetchall()

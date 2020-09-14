@@ -122,6 +122,7 @@ class SQLiteDatabase:
     db_connection.create_function('REGEXP', 2, SQLiteDatabase.__regexp)
 
     # Register BLOB-related functions
+    db_connection.create_aggregate('BLOB_CONCAT', 1, SQLiteDatabase.__BlobConcat)
     db_connection.create_function('BLOB_TO_STR', 1, SQLiteDatabase.__blob_to_str)
     db_connection.create_function('BLOB_SIZE', 1, SQLiteDatabase.__blob_size)
     db_connection.create_function('BLOB_SIZE_STR', 1, SQLiteDatabase.__blob_size_str)
@@ -139,17 +140,37 @@ class SQLiteDatabase:
   def __regexp(expression, item):
     return re.compile(expression).search(item) is not None
 
+  class __BlobConcat:
+    data: bytes
+
+    def __init__(self):
+      self.data = bytes()
+
+    def step(self, value: bytes):
+      self.data += value
+
+    def finalize(self) -> bytes:
+      return self.data
+
   @staticmethod
   def __blob_to_str(data: bytes) -> str:
     return data.decode('utf-8', 'ignore')
 
   @staticmethod
-  def __blob_size(data: bytes) -> int:
-    return len(data)
+  def __blob_size(stream_no: int) -> int:
+    db_cursor = SQLiteDatabase().execute('''
+      SELECT LENGTH(BLOB_CONCAT(data)) AS size
+      FROM StreamFragments
+      GROUP BY stream_no
+      HAVING stream_no = ?
+    ''', stream_no)
+    fetched_data = db_cursor.fetchone()
+
+    return fetched_data['size'] if fetched_data is not None else 0
 
   @staticmethod
-  def __blob_size_str(data: bytes) -> str:
-    size = SQLiteDatabase.__blob_size(data)
+  def __blob_size_str(stream_no: int) -> str:
+    size = SQLiteDatabase.__blob_size(stream_no)
     suffix = 'B'
 
     # Source: https://stackoverflow.com/a/1094933

@@ -32,8 +32,8 @@ def __streams():
                src_port,
                dst_ip,
                dst_port,
-               BLOB_SIZE(data) AS size,
-               BLOB_SIZE_STR(data) AS size_str
+               BLOB_SIZE(OldestNewestStreamFragments.stream_no) AS size,
+               BLOB_SIZE_STR(OldestNewestStreamFragments.stream_no) AS size_str
         FROM StreamFragments
         INNER JOIN OldestNewestStreamFragments ON
                    StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
@@ -54,8 +54,8 @@ def __streams():
                src_port,
                dst_ip,
                dst_port,
-               BLOB_SIZE(data) AS size,
-               BLOB_SIZE_STR(data) AS size_str
+               BLOB_SIZE(OldestNewestStreamFragments.stream_no) AS size,
+               BLOB_SIZE_STR(OldestNewestStreamFragments.stream_no) AS size_str
         FROM StreamFragments INNER JOIN OldestNewestStreamFragments ON
              StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
              StreamFragments.timestamp = OldestNewestStreamFragments.oldest_timestamp
@@ -71,8 +71,8 @@ def __streams():
              src_port,
              dst_ip,
              dst_port,
-             BLOB_SIZE(data) AS size,
-             BLOB_SIZE_STR(data) AS size_str
+             BLOB_SIZE(OldestNewestStreamFragments.stream_no) AS size,
+             BLOB_SIZE_STR(OldestNewestStreamFragments.stream_no) AS size_str
       FROM StreamFragments INNER JOIN OldestNewestStreamFragments ON
            StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
            StreamFragments.timestamp = OldestNewestStreamFragments.oldest_timestamp
@@ -104,11 +104,11 @@ def __stream_details(stream_no):
            src_port,
            dst_ip,
            dst_port,
-           BLOB_SIZE(data) AS size,
-           BLOB_SIZE_STR(data) AS size_str
+           BLOB_SIZE(OldestNewestStreamFragments.stream_no) AS size,
+           BLOB_SIZE_STR(OldestNewestStreamFragments.stream_no) AS size_str
     FROM StreamFragments INNER JOIN OldestNewestStreamFragments ON
-          StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
-          StreamFragments.timestamp = OldestNewestStreamFragments.oldest_timestamp
+         StreamFragments.stream_no = OldestNewestStreamFragments.stream_no AND
+         StreamFragments.timestamp = OldestNewestStreamFragments.oldest_timestamp
     WHERE OldestNewestStreamFragments.stream_no = ?
   ''', stream_no)
   fetched_stream = db_cursor.fetchone()

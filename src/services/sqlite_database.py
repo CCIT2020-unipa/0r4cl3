@@ -155,6 +155,9 @@ class SQLiteDatabase:
 
   @staticmethod
   def __blob_to_str(data: bytes) -> str:
+    # Replace string terminators with whitespaces to avoid losing data when SQLite is involved
+    data = data.replace(b'\x00', b'\x20')
+
     # Replace wrong bytes with '�' character
     return data.decode('utf-8', 'replace')
 

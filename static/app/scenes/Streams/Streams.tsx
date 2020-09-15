@@ -26,7 +26,7 @@ const RESIZE_DETECTOR_REFRESH_RATE_MS = 1250
 
 export class Streams extends React.Component<IProps, IState> {
   private m_ContentRef: React.Component | null = null
-  private m_TimeoutID?: NodeJS.Timeout
+  private m_TimeoutID?: number
 
   state = {
     query: '',
@@ -146,12 +146,12 @@ export class Streams extends React.Component<IProps, IState> {
    */
   componentDidMount() {
     this.fetchStreams()
-    this.m_TimeoutID = setInterval(() => this.fetchStreams(), STREAMS_UPDATE_INTERVAL_MS) as NodeJS.Timeout
+    this.m_TimeoutID = window.setInterval(() => this.fetchStreams(), STREAMS_UPDATE_INTERVAL_MS)
   }
 
   componentWillUnmount() {
     // Stop fetching streams
-    if (this.m_TimeoutID) clearInterval(this.m_TimeoutID)
+    if (this.m_TimeoutID) window.clearInterval(this.m_TimeoutID)
   }
 
   private fetchStreams = (): void => {

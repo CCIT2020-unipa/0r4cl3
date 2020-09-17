@@ -18,7 +18,7 @@ export const login = async (accessToken: string): Promise<boolean> => {
   return res.status !== 401
 }
 
-type QueryMode =
+export type QueryMode =
   | 'fulltext'
   | 'regexp'
 

@@ -28,6 +28,8 @@
   "dependencies": {
     "antd": "^4.6.2",
     "hexy": "^0.3.0",
+    "mobx": "^5.15.6",
+    "mobx-react": "^6.3.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-resize-detector": "^5.1.3"

@@ -20,9 +20,9 @@ const computeHexdumpColumns = (screenWidth: number): number => {
   return MIN_COLUMNS * 2 + columns * 2
 }
 
-export const StreamDetails: React.FC<IProps> = ({ streamDetails, loading, dimensions }) => {
+export const StreamDetails: React.FC<IProps> = ({ loading, streamDetails, dimensions }) => {
   if (!streamDetails) {
-    return <NoSelection height={dimensions.height} loading={loading} />
+    return <NoSelection loading={loading} height={dimensions.height} />
   }
 
   const [showHexdump, setShowHexdump] = React.useState<boolean>(false) 
@@ -71,7 +71,7 @@ export const StreamDetails: React.FC<IProps> = ({ streamDetails, loading, dimens
 }
 
 interface IProps {
-  streamDetails: IStreamDetailsResponse | null
   loading: boolean
+  streamDetails: IStreamDetailsResponse | null
   dimensions: { height: number, width: number }
 }

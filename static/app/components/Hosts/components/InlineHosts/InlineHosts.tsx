@@ -16,12 +16,9 @@ export const InlineHosts: React.FC<IProps> = ({ srcIP, srcPort, dstIP, dstPort, 
       <Text>
         {(() => {
           switch (direction) {
-            case 'both':
-              return '⇋'
-            case 'src-to-dst':
-              return '⥬'
-            case 'dst-to-src':
-              return '⥪'
+            case 'both': return '⇋'
+            case 'src-to-dst': return '⥬'
+            case 'dst-to-src': return '⥪'
           }
         })()}
       </Text>

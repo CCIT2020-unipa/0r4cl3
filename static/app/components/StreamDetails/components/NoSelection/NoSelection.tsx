@@ -3,7 +3,7 @@ import { Spin, Typography, Empty } from 'antd'
 const { Text } = Typography
 import './NoSelection.css'
 
-export const NoSelection: React.FC<IProps> = ({ height, loading }) => (
+export const NoSelection: React.FC<IProps> = ({ loading, height }) => (
   <div style={{ height }} className='NoSelection-container'>
     {loading ? (
       <Spin size='large' />
@@ -19,6 +19,6 @@ export const NoSelection: React.FC<IProps> = ({ height, loading }) => (
 )
 
 interface IProps {
-  height: number
   loading: boolean
+  height: number
 }

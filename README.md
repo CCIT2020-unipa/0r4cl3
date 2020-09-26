@@ -3,7 +3,8 @@
 ### Installation
 1. Install `python3` (tested with Python 3.7.2)
 2. Install `node` and `npm` (tested with NodeJS 12.18.3 LTS)
-3. Clone the repository and install the required dependencies (for both Python and NodeJS)
+3. Install [Wireshark](https://www.wireshark.org/) and ensure that it's added to `PATH`
+4. Clone the repository and install the required dependencies (for both Python and NodeJS)
    ```
    $ pip3 install -r requirements.txt
    $ npm install
